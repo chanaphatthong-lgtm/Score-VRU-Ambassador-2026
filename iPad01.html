@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Judge Screen - iPad01</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,11 +11,29 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
+        /* ล็อกหน้าจอ ป้องกันการเลื่อน/ซูม/เลือกข้อความ */
+        html, body {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
         body {
             font-family: 'Noto Sans Thai', sans-serif;
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
-            min-height: 100vh;
         }
+
+        /* อนุญาตให้เลือกและพิมพ์ได้เฉพาะช่องกรอกคะแนน */
+        input {
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+        }
+
+        /* สไตล์กระจกใสทั่วไป */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(16px);
@@ -24,6 +42,7 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
         
+        /* สไตล์กระจกขาวสว่าง (สำหรับกล่อง Modal ตรงกลาง) */
         .modal-glass {
             background: rgba(255, 255, 255, 0.85); 
             backdrop-filter: blur(20px);
@@ -36,12 +55,14 @@
             transform: scale(0.97);
         }
         
+        /* ซ่อนลูกศรในช่องกรอกตัวเลข */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
             margin: 0; 
         }
 
+        /* แอนิเมชันเส้นปาดเอียง 45 องศา */
         .animate-wipe-diagonal {
             animation: wipeDiagonalReveal 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
@@ -60,9 +81,9 @@
         }
     </style>
 </head>
-<body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden">
+<body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden select-none">
 
-    <!-- OVERLAY: หน้าจอล็อกรอแอดมิน -->
+    <!-- OVERLAY: หน้าจอล็อกรอแอดมิน (เริ่มต้นล็อกเสมอ) -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
@@ -116,24 +137,37 @@
     <!-- MAIN SCORING PANEL -->
     <main class="relative z-40 liquid-glass rounded-3xl p-6 flex-1 flex flex-col min-h-0">
         
-        <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2 shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-            แบบประเมินให้คะแนน (ข้อมูลเชื่อมต่อสดจาก Google Sheets)
-        </h3>
+        <!-- HEADER ด้านบนของแบบประเมิน (ย้ายปุ่มบันทึกคะแนนขึ้นมาไว้ที่นี่) -->
+        <div class="flex justify-between items-center mb-4 shrink-0 gap-4">
+            <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                แบบประเมินให้คะแนน
+            </h3>
 
-        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2">
-        </div>
-
-        <div class="mt-5 shrink-0">
-            <button id="submit-btn" class="glass-button w-full bg-blue-900/90 hover:bg-blue-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-[0_4px_15px_rgba(30,58,138,0.3)] transition-all flex justify-center items-center gap-3">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            <!-- ปุ่มบันทึกคะแนนและส่ง (ย้ายมาขวาบน ป้องกันมือลั่นขณะกรอกคะแนน) -->
+            <button id="submit-btn" class="glass-button bg-blue-900 hover:bg-blue-800 text-white font-bold text-lg px-7 py-3 rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 บันทึกคะแนนและส่ง
             </button>
         </div>
+
+        <!-- GRID แสดงรายการเกณฑ์คะแนน -->
+        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2 flex-1">
+            <!-- จะถูกสร้างไดนามิกด้วย JavaScript ตามรอบการแข่งขัน -->
+        </div>
+
     </main>
 
     <!-- Script -->
     <script>
+        // -----------------------------------------------------------------
+        // ระบบป้องกันการซูมและการลากหน้าจอบน iPad
+        // -----------------------------------------------------------------
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('touchmove', (e) => {
+            if (e.scale !== 1) e.preventDefault();
+        }, { passive: false });
+
         const overlay = document.getElementById('waiting-overlay');
         const waitingModal = document.getElementById('waiting-modal');
         const waitingTitle = document.getElementById('waiting-title');
@@ -154,7 +188,7 @@
         const deviceIdText = document.getElementById('device-id-text');
         const displayJudgeName = document.getElementById('display-judge-name');
 
-        const DEVICE_ID = 'iPad 01'; // กำหนดชื่อประจำเครื่อง
+        const DEVICE_ID = 'iPad 01'; // กำหนดชื่อประจำเครื่องกรรมการคนที่ 1
 
         // -----------------------------------------------------------------
         // โครงสร้างแผนผังการดึงข้อมูลตามรอบ
@@ -251,6 +285,7 @@
         
         loadCriteriaForRound('รอบที่ 1');
 
+        // เมื่อกรรมการกดปุ่ม "บันทึกคะแนนและส่ง"
         submitBtn.addEventListener('click', () => {
             iconLock.classList.remove('opacity-0');
             iconUnlock.classList.add('opacity-0');
@@ -268,12 +303,13 @@
         });
 
         // -----------------------------------------------------------------
-        // ประมวลผลคำสั่งจาก Admin Console
+        // ประมวลผลคำสั่งจาก Admin Console (เฉพาะคำสั่งใหม่หลังจากเปิดหน้าเว็บ)
         // -----------------------------------------------------------------
-        let lastProcessedTime = 0;
+        const pageLoadTime = Date.now();
+        let lastProcessedTime = pageLoadTime; // ข้ามคำสั่งสถิตย์ค้างเก่าจาก MQTT
 
         async function processAdminCommand(command) {
-            if (!command || command.timestamp === lastProcessedTime) return;
+            if (!command || !command.timestamp || command.timestamp <= lastProcessedTime) return;
             lastProcessedTime = command.timestamp;
 
             if (command.action === 'START_VOTING') {
@@ -381,7 +417,7 @@
 
             mqttClient.subscribe(CMD_TOPIC, { qos: 1 });
 
-            // ยิงสัญญาณ Heartbeat แจ้งสถานะออนไลน์ไปยัง Admin ทุกๆ 3 วินาที
+            // ยิงสัญญาณ Heartbeat สตรีมสถานะออนไลน์ไปยัง Admin ทุกๆ 3 วินาที
             sendHeartbeat();
             setInterval(sendHeartbeat, 3000);
         });
