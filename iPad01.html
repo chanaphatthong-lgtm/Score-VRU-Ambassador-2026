@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- PeerJS SDK สำหรับรับสัญญาณข้ามเครื่องจาก Admin -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    
     <style>
         body {
             font-family: 'Noto Sans Thai', sans-serif;
@@ -67,7 +70,7 @@
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
         <!-- MODAL BOX: ตัวกรอบสไลด์ขึ้น ฟิกซ์ขนาดกว้างยาว คงที่เสมอ -->
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
-            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
+            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
                 <svg id="icon-lock" class="w-10 h-10 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
@@ -218,7 +221,6 @@
 
         // ฟังก์ชันดึงและรวมเกณฑ์ทั้งหมดของรอบนั้นๆ
         async function loadCriteriaForRound(roundName) {
-            // ค้นหาการจับคู่ชื่อรอบ
             let matchedKey = Object.keys(ROUND_CONFIGS).find(key => roundName.includes(key)) || 'รอบที่ 1';
             const config = ROUND_CONFIGS[matchedKey];
 
@@ -236,7 +238,6 @@
         function renderCriteria(criteriaList) {
             criteriaContainer.innerHTML = '';
             criteriaList.forEach((criterionName) => {
-                // พยายามสกัดคะแนนเต็มจากข้อความ เช่น "(15 คะแนน)" หรือ "(20 คะแนน)" ถ้าไม่มีให้ใช้ 10 หรือ 5 เป็นค่าเริ่มต้น
                 const matchScore = criterionName.match(/\((\d+)\s*คะแนน\)/) || criterionName.match(/\((\d+)\)/);
                 const maxScore = matchScore ? parseInt(matchScore[1]) : 10;
 
@@ -293,87 +294,153 @@
             }, 50);
         });
 
-        // ฟังก์ชันรับคำสั่งจาก Admin
-        window.addEventListener('storage', async (event) => {
-            if (event.key === 'adminCommand') {
-                const command = JSON.parse(event.newValue);
-                
-                if (command && command.action === 'START_VOTING') {
-                    
-                    const nameParts = command.contestantName.split(' - ');
-                    const numberStr = nameParts[0]; 
-                    const nameStr = nameParts[1] || ''; 
-                    const justNumber = numberStr.replace(/\D/g, ''); 
-                    
-                    const currentRoundText = displayRoundNode.textContent.trim();
-                    const newRoundText = command.roundName || 'รอบที่ 1';
-                    const isRoundChanged = currentRoundText !== newRoundText;
+        // -----------------------------------------------------------------
+        // ประมวลผลคำสั่งจาก Admin Console
+        // -----------------------------------------------------------------
+        async function processAdminCommand(command) {
+            if (!command) return;
 
-                    // ถ้ารอบเปลี่ยน ดึงเกณฑ์คะแนนของรอบใหม่จาก Google Sheets
+            if (command.action === 'START_VOTING') {
+                const nameParts = (command.contestantName || '').split(' - ');
+                const numberStr = nameParts[0] || '-'; 
+                const nameStr = nameParts[1] || ''; 
+                const justNumber = numberStr.replace(/\D/g, ''); 
+                
+                const currentRoundText = displayRoundNode.textContent.trim();
+                const newRoundText = command.roundName || 'รอบที่ 1';
+                const isRoundChanged = currentRoundText !== newRoundText;
+
+                // ถ้ารอบเปลี่ยน ดึงเกณฑ์คะแนนของรอบใหม่จาก Google Sheets
+                if (isRoundChanged) {
+                    await loadCriteriaForRound(newRoundText);
+                }
+                
+                let elementsToAnimate = [profileCircle, contestantDetailsWrapper];
+                if (isRoundChanged) {
+                    elementsToAnimate.push(displayRoundWrapper);
+                }
+                
+                elementsToAnimate.forEach(el => {
+                    el.style.transition = 'opacity 0.3s ease';
+                    el.style.opacity = '0';
+                });
+                
+                iconLock.classList.add('opacity-0');
+                iconUnlock.classList.remove('opacity-0');
+                iconContainer.classList.add('scale-110');
+                waitingTitle.classList.add('text-green-600');
+                waitingTitle.textContent = "ปลดล็อกแล้ว";
+                waitingText.textContent = "เตรียมแสดงข้อมูลผู้เข้าแข่งขัน...";
+                
+                document.querySelectorAll('.score-input').forEach(input => input.value = '');
+
+                setTimeout(() => {
                     if (isRoundChanged) {
-                        await loadCriteriaForRound(newRoundText);
+                        displayRoundNode.textContent = newRoundText;
                     }
                     
-                    let elementsToAnimate = [profileCircle, contestantDetailsWrapper];
-                    if (isRoundChanged) {
-                        elementsToAnimate.push(displayRoundWrapper);
+                    document.getElementById('display-number').textContent = numberStr;
+                    document.getElementById('display-name').textContent = nameStr;
+                    
+                    const imageUrl = command.contestantImage || command.imageUrl;
+                    if (imageUrl) {
+                        profileCircle.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover rounded-full" alt="${justNumber}">`;
+                    } else {
+                        profileCircle.textContent = justNumber || '?';
                     }
                     
                     elementsToAnimate.forEach(el => {
-                        el.style.transition = 'opacity 0.3s ease';
-                        el.style.opacity = '0';
+                        el.style.transition = '';
+                        el.style.opacity = '';
+                        el.classList.remove('animate-wipe-diagonal');
+                        void el.offsetWidth; 
+                        el.classList.add('animate-wipe-diagonal');
                     });
                     
-                    iconLock.classList.add('opacity-0');
-                    iconUnlock.classList.remove('opacity-0');
-                    iconContainer.classList.add('scale-110');
-                    waitingTitle.classList.add('text-green-600');
-                    waitingTitle.textContent = "ปลดล็อกแล้ว";
-                    waitingText.textContent = "เตรียมแสดงข้อมูลผู้เข้าแข่งขัน...";
-                    
-                    document.querySelectorAll('.score-input').forEach(input => input.value = '');
+                    waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
 
                     setTimeout(() => {
-                        if (isRoundChanged) {
-                            displayRoundNode.textContent = newRoundText;
-                        }
+                        overlay.classList.add('opacity-0');
+                        waitingModal.classList.add('-translate-y-[100vh]');
                         
-                        document.getElementById('display-number').textContent = numberStr;
-                        document.getElementById('display-name').textContent = nameStr;
-                        
-                        const imageUrl = command.contestantImage || command.imageUrl;
-                        if (imageUrl) {
-                            profileCircle.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover rounded-full" alt="${justNumber}">`;
-                        } else {
-                            profileCircle.textContent = justNumber || '?';
-                        }
-                        
-                        elementsToAnimate.forEach(el => {
-                            el.style.transition = '';
-                            el.style.opacity = '';
-                            el.classList.remove('animate-wipe-diagonal');
-                            void el.offsetWidth; 
-                            el.classList.add('animate-wipe-diagonal');
-                        });
-                        
-                        waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
-
                         setTimeout(() => {
-                            overlay.classList.add('opacity-0');
-                            waitingModal.classList.add('-translate-y-[100vh]');
-                            
-                            setTimeout(() => {
-                                overlay.style.display = 'none';
-                                waitingTitle.textContent = "กรุณารอสักครู่";
-                                waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
-                                waitingTitle.classList.remove('text-green-600');
-                            }, 700);
-                        }, 500); 
-                        
-                    }, 300); 
-                }
+                            overlay.style.display = 'none';
+                            waitingTitle.textContent = "กรุณารอสักครู่";
+                            waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
+                            waitingTitle.classList.remove('text-green-600');
+                        }, 700);
+                    }, 500); 
+                    
+                }, 300); 
+            } 
+            else if (command.action === 'LOCK_SCREEN') {
+                iconLock.classList.remove('opacity-0');
+                iconUnlock.classList.add('opacity-0');
+                iconContainer.classList.remove('scale-110');
+                waitingTitle.classList.remove('text-green-600');
+                
+                waitingTitle.textContent = "ล็อกหน้าจอแล้ว";
+                waitingText.textContent = "ผู้ควบคุมสั่งล็อกหน้าจอรับคะแนน...";
+                
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    waitingModal.classList.remove('-translate-y-[100vh]'); 
+                }, 50);
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // ระบบ PeerJS เชื่อมต่อข้ามเครื่องแบบ Real-time กับ Admin
+        // -----------------------------------------------------------------
+        const ADMIN_PEER_ID = 'vru-pageant-admin-2025';
+        let peer = null;
+        let adminConn = null;
+
+        function initPeerConnection() {
+            peer = new Peer();
+
+            peer.on('open', (id) => {
+                console.log('iPad Peer Online ID:', id);
+                connectToAdmin();
+            });
+
+            peer.on('error', (err) => {
+                console.warn('Peer error, retrying in 3s...', err);
+                setTimeout(connectToAdmin, 3000);
+            });
+        }
+
+        function connectToAdmin() {
+            if (!peer) return;
+            adminConn = peer.connect(ADMIN_PEER_ID);
+
+            adminConn.on('open', () => {
+                console.log('✅ เชื่อมต่อกับ Admin Console เรียบร้อยแล้ว!');
+            });
+
+            adminConn.on('data', (data) => {
+                processAdminCommand(data);
+            });
+
+            adminConn.on('close', () => {
+                console.warn('⚠️ หลุดการเชื่อมต่อจาก Admin กำลังลองเชื่อมต่อใหม่...');
+                setTimeout(connectToAdmin, 2000);
+            });
+        }
+
+        // รองรับกรณีทดสอบ Admin และ iPad บนเครื่องเดียวกันผ่าน localStorage
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'adminCommand') {
+                try {
+                    const command = JSON.parse(event.newValue);
+                    processAdminCommand(command);
+                } catch(e) {}
             }
         });
+
+        // เริ่มการเชื่อมต่อ PeerJS
+        initPeerConnection();
     </script>
 </body>
 </html>
