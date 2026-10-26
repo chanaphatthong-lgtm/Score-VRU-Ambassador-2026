@@ -137,14 +137,14 @@
     <!-- MAIN SCORING PANEL -->
     <main class="relative z-40 liquid-glass rounded-3xl p-6 flex-1 flex flex-col min-h-0">
         
-        <!-- HEADER ด้านบนของแบบประเมิน (ย้ายปุ่มบันทึกคะแนนขึ้นมาไว้ที่นี่) -->
+        <!-- HEADER ด้านบนของแบบประเมิน -->
         <div class="flex justify-between items-center mb-4 shrink-0 gap-4">
             <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                 แบบประเมินให้คะแนน
             </h3>
 
-            <!-- ปุ่มบันทึกคะแนนและส่ง (ย้ายมาขวาบน ป้องกันมือลั่นขณะกรอกคะแนน) -->
+            <!-- ปุ่มบันทึกคะแนนและส่ง -->
             <button id="submit-btn" class="glass-button bg-blue-900 hover:bg-blue-800 text-white font-bold text-lg px-7 py-3 rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 บันทึกคะแนนและส่ง
@@ -248,7 +248,7 @@
             criteriaContainer.innerHTML = '';
             criteriaList.forEach((criterionName) => {
                 const matchScore = criterionName.match(/\((\d+)\s*คะแนน\)/) || criterionName.match(/\((\d+)\)/);
-                const maxScore = matchScore ? parseInt(matchScore[1]) : 10;
+                const maxScore = matchScore ? parseFloat(matchScore[1]) : 10;
 
                 const cardHTML = `
                     <div class="criterion-card bg-white/70 border border-white p-4 rounded-2xl shadow-sm flex justify-between items-center hover:shadow-md transition-shadow gap-3">
@@ -256,7 +256,7 @@
                             <h4 class="criterion-name text-lg font-bold text-slate-800 leading-tight">${criterionName}</h4>
                         </div>
                         <div class="w-32 shrink-0 flex flex-col items-center justify-center">
-                            <input type="number" inputmode="numeric" min="0" max="${maxScore}" placeholder="0" class="score-input w-full h-full min-h-[5rem] text-center text-5xl font-black text-blue-900 bg-white border-2 border-blue-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-inner">
+                            <input type="number" inputmode="decimal" step="any" min="0" max="${maxScore}" placeholder="0" class="score-input w-full h-full min-h-[5rem] text-center text-5xl font-black text-blue-900 bg-white border-2 border-blue-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-inner">
                         </div>
                     </div>
                 `;
@@ -265,20 +265,33 @@
             setupScoreValidation();
         }
 
+        // ระบบตรวจสอบคะแนน (รองรับทศนิยมถูกต้อง 100%)
         function setupScoreValidation() {
             const scoreInputs = document.querySelectorAll('.score-input');
             scoreInputs.forEach(input => {
                 input.addEventListener('input', function() {
                     if (this.value === '') return;
                     
-                    let val = parseInt(this.value);
-                    let maxScore = parseInt(this.getAttribute('max')) || 10; 
+                    let val = parseFloat(this.value);
+                    let maxScore = parseFloat(this.getAttribute('max')) || 10; 
                     
+                    if (isNaN(val)) return;
+
+                    // หากพิมพ์คะแนนเกินคะแนนเต็ม (เช่น 5.1 ถึง 5.9 ในข้อที่เต็ม 5) ให้ตัดเป็นคะแนนเต็มทันที
                     if (val > maxScore) {
                         this.value = maxScore;
                     } else if (val < 0) {
                         this.value = 0;
                     }
+                });
+
+                // ตรวจสอบเพิ่มเติมเมื่อละความสนใจออกจากช่องกรอก
+                input.addEventListener('blur', function() {
+                    if (this.value === '') return;
+                    let val = parseFloat(this.value);
+                    let maxScore = parseFloat(this.getAttribute('max')) || 10;
+                    if (isNaN(val) || val < 0) this.value = 0;
+                    else if (val > maxScore) this.value = maxScore;
                 });
             });
         }
@@ -417,7 +430,6 @@
 
             mqttClient.subscribe(CMD_TOPIC, { qos: 1 });
 
-            // ยิงสัญญาณ Heartbeat สตรีมสถานะออนไลน์ไปยัง Admin ทุกๆ 3 วินาที
             sendHeartbeat();
             setInterval(sendHeartbeat, 3000);
         });
