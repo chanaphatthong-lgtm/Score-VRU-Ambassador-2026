@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Judge Screen - iPad01</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
+            min-height: 100vh;
+        }
+        /* สไตล์กระจกใสทั่วไป */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        
+        /* สไตล์กระจกขาวสว่าง (สำหรับกล่อง Modal ตรงกลาง) */
+        .modal-glass {
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 40px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .glass-button:active {
+            transform: scale(0.97);
+        }
+        
+        /* ซ่อนลูกศรในช่องกรอกตัวเลข */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* แอนิเมชันเส้นปาดเอียง 45 องศา */
+        .animate-wipe-diagonal {
+            animation: wipeDiagonalReveal 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        
+        @keyframes wipeDiagonalReveal {
+            0% {
+                clip-path: polygon(0 0, -20% 0, -50% 100%, 0 100%);
+                transform: translateX(-30px); 
+                opacity: 0;
+            }
+            100% {
+                clip-path: polygon(0 0, 150% 0, 120% 100%, 0 100%);
+                transform: translateX(0); 
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden">
+
+    <!-- OVERLAY: หน้าจอล็อกรอแอดมิน -->
+    <div id="waiting-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
+        <!-- MODAL BOX: ตัวกรอบสไลด์ขึ้น ฟิกซ์ขนาดกว้างยาว คงที่เสมอ -->
+        <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
+            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
+                <svg id="icon-lock" class="w-10 h-10 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <svg id="icon-unlock" class="w-10 h-10 absolute opacity-0 transition-opacity duration-300 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <div class="h-[80px] flex flex-col items-center justify-start">
+                <h3 id="waiting-title" class="text-3xl font-bold text-blue-900 mb-2 transition-colors duration-300 w-full">กรุณารอสักครู่</h3>
+                <p id="waiting-text" class="text-slate-600 font-medium w-full">รอผู้ควบคุมเปิดระบบรับคะแนน...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER: ส่วนหัวแสดงข้อมูลรอบและนางงาม -->
+    <nav class="relative z-[60] liquid-glass rounded-3xl p-5 mb-5 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-5">
+            <!-- วงกลมหมายเลข -->
+            <div id="profile-circle" class="relative overflow-hidden w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-3xl shadow-lg shrink-0">
+                ?
+            </div>
+            <div class="flex flex-col">
+                <div id="display-round-wrapper" class="mb-1">
+                    <div id="display-round" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold inline-block border border-blue-200">
+                        รอเลือกการแข่งขัน
+                    </div>
+                </div>
+                <div id="contestant-details-wrapper" class="flex items-baseline gap-3">
+                    <h1 id="display-number" class="text-3xl font-black text-blue-900">-</h1>
+                    <h2 id="display-name" class="text-xl font-bold text-slate-600">-</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- แถบด้านขวา: สถานะการเชื่อมต่อ+ชื่อ iPad และ ชื่อกรรมการ -->
+        <div class="flex items-center gap-3">
+            <div class="bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2.5">
+                <div id="conn-dot" class="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+                <div id="conn-text" class="text-xs font-bold text-green-600 uppercase tracking-wide">เชื่อมต่อแล้ว</div>
+                <div class="h-4 w-[1px] bg-slate-300 mx-0.5"></div>
+                <div class="text-base font-black text-blue-900">iPad 01</div>
+            </div>
+            
+            <div class="bg-white/70 px-6 py-3 rounded-2xl border border-white shadow-sm flex items-center justify-center">
+                <div id="display-judge-name" class="text-lg font-black text-blue-900">ผศ. ดร. ภิศักดิ์ กัลยาณมิตร</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN SCORING PANEL: พื้นที่กรอกคะแนน -->
+    <main class="relative z-40 liquid-glass rounded-3xl p-6 flex-1 flex flex-col min-h-0">
+        
+        <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2 shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            แบบประเมินให้คะแนน (ข้อมูลเชื่อมต่อสดจาก Google Sheets)
+        </h3>
+
+        <!-- GRID แบบ 2 คอลัมน์ (แสดงเกณฑ์ไดนามิกจาก Google Sheets) -->
+        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2">
+            <!-- จะถูกสร้างไดนามิกด้วย JavaScript ตามรอบการแข่งขัน -->
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-5 shrink-0">
+            <button id="submit-btn" class="glass-button w-full bg-blue-900/90 hover:bg-blue-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-[0_4px_15px_rgba(30,58,138,0.3)] transition-all flex justify-center items-center gap-3">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                บันทึกคะแนนและส่ง
+            </button>
+        </div>
+    </main>
+
+    <!-- Script -->
+    <script>
+        const overlay = document.getElementById('waiting-overlay');
+        const waitingModal = document.getElementById('waiting-modal');
+        const waitingTitle = document.getElementById('waiting-title');
+        const waitingText = document.getElementById('waiting-text');
+        const submitBtn = document.getElementById('submit-btn');
+        const iconLock = document.getElementById('icon-lock');
+        const iconUnlock = document.getElementById('icon-unlock');
+        const iconContainer = document.getElementById('icon-container');
+        
+        const displayRoundNode = document.getElementById('display-round');
+        const displayRoundWrapper = document.getElementById('display-round-wrapper');
+        const profileCircle = document.getElementById('profile-circle');
+        const contestantDetailsWrapper = document.getElementById('contestant-details-wrapper');
+        const criteriaContainer = document.getElementById('criteria-container');
+
+        // ฟังก์ชันจัดการไฟสถานะการเชื่อมต่อ
+        const connDot = document.getElementById('conn-dot');
+        const connText = document.getElementById('conn-text');
+
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                connDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+                connText.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
+                connText.textContent = "เชื่อมต่อแล้ว";
+            } else {
+                connDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]";
+                connText.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
+                connText.textContent = "ขาดการเชื่อมต่อ";
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // -----------------------------------------------------------------
+        // โครงสร้างแผนผังการดึงข้อมูลตามรอบ
+        // -----------------------------------------------------------------
+        const SHEET_ID = '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8';
+        
+        const ROUND_CONFIGS = {
+            'รอบที่ 1': { sheet: 'รอบที่ 1', ranges: ['D11:F11', 'G10:I10'] },
+            'รอบที่ 2': { sheet: 'รอบที่ 2', ranges: ['D10:G10'] },
+            'รอบที่ 3': { sheet: 'รอบที่ 3', ranges: ['D10', 'E11:G11', 'H10'] },
+            'รอบที่ 4': { sheet: 'รอบที่ 4', ranges: ['D11:H11', 'I10'] },
+            'รอบที่ 5': { sheet: 'รอบที่ 5', ranges: ['D11:H11', 'I10'] }
+        };
+
+        // ฟังก์ชันดึงเซลล์จาก Google Sheets ตามช่วงที่กำหนด (ดึงข้อความ 100%)
+        async function fetchSingleRange(sheetName, range) {
+            try {
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
+                const response = await fetch(gvizUrl);
+                const text = await response.text();
+                
+                const jsonString = text.substring(47, text.length - 2);
+                const data = JSON.parse(jsonString);
+                
+                let results = [];
+                if (data.table && data.table.rows && data.table.rows.length > 0) {
+                    const cells = data.table.rows[0].c;
+                    cells.forEach(cell => {
+                        if (cell) {
+                            const val = cell.f || cell.v || '';
+                            if (val !== '') results.push(String(val));
+                        }
+                    });
+                }
+                return results;
+            } catch (err) {
+                console.error(`Error fetching range ${sheetName}!${range}:`, err);
+                return [];
+            }
+        }
+
+        // ฟังก์ชันดึงและรวมเกณฑ์ทั้งหมดของรอบนั้นๆ
+        async function loadCriteriaForRound(roundName) {
+            // ค้นหาการจับคู่ชื่อรอบ
+            let matchedKey = Object.keys(ROUND_CONFIGS).find(key => roundName.includes(key)) || 'รอบที่ 1';
+            const config = ROUND_CONFIGS[matchedKey];
+
+            let allCriteria = [];
+            for (const range of config.ranges) {
+                const rangeItems = await fetchSingleRange(config.sheet, range);
+                allCriteria = allCriteria.concat(rangeItems);
+            }
+
+            if (allCriteria.length > 0) {
+                renderCriteria(allCriteria);
+            }
+        }
+
+        function renderCriteria(criteriaList) {
+            criteriaContainer.innerHTML = '';
+            criteriaList.forEach((criterionName) => {
+                // พยายามสกัดคะแนนเต็มจากข้อความ เช่น "(15 คะแนน)" หรือ "(20 คะแนน)" ถ้าไม่มีให้ใช้ 10 หรือ 5 เป็นค่าเริ่มต้น
+                const matchScore = criterionName.match(/\((\d+)\s*คะแนน\)/) || criterionName.match(/\((\d+)\)/);
+                const maxScore = matchScore ? parseInt(matchScore[1]) : 10;
+
+                const cardHTML = `
+                    <div class="criterion-card bg-white/70 border border-white p-4 rounded-2xl shadow-sm flex justify-between items-center hover:shadow-md transition-shadow gap-3">
+                        <div class="flex-1 flex flex-col justify-center">
+                            <h4 class="criterion-name text-lg font-bold text-slate-800 leading-tight">${criterionName}</h4>
+                        </div>
+                        <div class="w-32 shrink-0 flex flex-col items-center justify-center">
+                            <input type="number" inputmode="numeric" min="0" max="${maxScore}" placeholder="0" class="score-input w-full h-full min-h-[5rem] text-center text-5xl font-black text-blue-900 bg-white border-2 border-blue-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all shadow-inner">
+                        </div>
+                    </div>
+                `;
+                criteriaContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+            setupScoreValidation();
+        }
+
+        function setupScoreValidation() {
+            const scoreInputs = document.querySelectorAll('.score-input');
+            scoreInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value === '') return;
+                    
+                    let val = parseInt(this.value);
+                    let maxScore = parseInt(this.getAttribute('max')) || 10; 
+                    
+                    if (val > maxScore) {
+                        this.value = maxScore;
+                    } else if (val < 0) {
+                        this.value = 0;
+                    }
+                });
+            });
+        }
+        
+        // เริ่มต้นโหลดรอบที่ 1
+        loadCriteriaForRound('รอบที่ 1');
+
+        // ฟังก์ชันเมื่อกรรมการกดปุ่ม "บันทึกคะแนนและส่ง"
+        submitBtn.addEventListener('click', () => {
+            iconLock.classList.remove('opacity-0');
+            iconUnlock.classList.add('opacity-0');
+            iconContainer.classList.remove('scale-110');
+            waitingTitle.classList.remove('text-green-600');
+            
+            waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
+            waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+            
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                waitingModal.classList.remove('-translate-y-[100vh]'); 
+            }, 50);
+        });
+
+        // ฟังก์ชันรับคำสั่งจาก Admin
+        window.addEventListener('storage', async (event) => {
+            if (event.key === 'adminCommand') {
+                const command = JSON.parse(event.newValue);
+                
+                if (command && command.action === 'START_VOTING') {
+                    
+                    const nameParts = command.contestantName.split(' - ');
+                    const numberStr = nameParts[0]; 
+                    const nameStr = nameParts[1] || ''; 
+                    const justNumber = numberStr.replace(/\D/g, ''); 
+                    
+                    const currentRoundText = displayRoundNode.textContent.trim();
+                    const newRoundText = command.roundName || 'รอบที่ 1';
+                    const isRoundChanged = currentRoundText !== newRoundText;
+
+                    // ถ้ารอบเปลี่ยน ดึงเกณฑ์คะแนนของรอบใหม่จาก Google Sheets
+                    if (isRoundChanged) {
+                        await loadCriteriaForRound(newRoundText);
+                    }
+                    
+                    let elementsToAnimate = [profileCircle, contestantDetailsWrapper];
+                    if (isRoundChanged) {
+                        elementsToAnimate.push(displayRoundWrapper);
+                    }
+                    
+                    elementsToAnimate.forEach(el => {
+                        el.style.transition = 'opacity 0.3s ease';
+                        el.style.opacity = '0';
+                    });
+                    
+                    iconLock.classList.add('opacity-0');
+                    iconUnlock.classList.remove('opacity-0');
+                    iconContainer.classList.add('scale-110');
+                    waitingTitle.classList.add('text-green-600');
+                    waitingTitle.textContent = "ปลดล็อกแล้ว";
+                    waitingText.textContent = "เตรียมแสดงข้อมูลผู้เข้าแข่งขัน...";
+                    
+                    document.querySelectorAll('.score-input').forEach(input => input.value = '');
+
+                    setTimeout(() => {
+                        if (isRoundChanged) {
+                            displayRoundNode.textContent = newRoundText;
+                        }
+                        
+                        document.getElementById('display-number').textContent = numberStr;
+                        document.getElementById('display-name').textContent = nameStr;
+                        
+                        const imageUrl = command.contestantImage || command.imageUrl;
+                        if (imageUrl) {
+                            profileCircle.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover rounded-full" alt="${justNumber}">`;
+                        } else {
+                            profileCircle.textContent = justNumber || '?';
+                        }
+                        
+                        elementsToAnimate.forEach(el => {
+                            el.style.transition = '';
+                            el.style.opacity = '';
+                            el.classList.remove('animate-wipe-diagonal');
+                            void el.offsetWidth; 
+                            el.classList.add('animate-wipe-diagonal');
+                        });
+                        
+                        waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
+
+                        setTimeout(() => {
+                            overlay.classList.add('opacity-0');
+                            waitingModal.classList.add('-translate-y-[100vh]');
+                            
+                            setTimeout(() => {
+                                overlay.style.display = 'none';
+                                waitingTitle.textContent = "กรุณารอสักครู่";
+                                waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
+                                waitingTitle.classList.remove('text-green-600');
+                            }, 700);
+                        }, 500); 
+                        
+                    }, 300); 
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control - VRU Ambassador 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
+            min-height: 100vh;
+        }
+
+        /* ซ่อนแถบสไลด์ (Scrollbar) ทั้งหมด */
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0px;
+            background: transparent;
+        }
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* สไตล์กระจกใส Liquid Glass */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            transition: all 0.2s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+        }
+        .active-card {
+            background: rgba(219, 234, 254, 0.95) !important;
+            border-color: rgba(30, 58, 138, 0.8) !important;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+        }
+
+        .glass-button:active {
+            transform: scale(0.97);
+        }
+
+        /* อนิเมชันสไลด์เลื่อนข้อความรอบการแข่งขัน */
+        @keyframes slideInUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideInDown {
+            0% { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .anim-slide-up {
+            animation: slideInUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .anim-slide-down {
+            animation: slideInDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* ป้องกันหน้าจอสโครลซ้อนขณะกำลังลาก */
+        #drag-handle-bar {
+            touch-action: none;
+        }
+
+        /* Animation เคลื่อนที่นุ่มนวลในการเปลี่ยนสถานะ */
+        #contestants-panel {
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* โหมดพับเก็บล่างสุด (Minimized) - เหลือเฉพาะขีดและข้อความใต้ขีดเท่านั้น */
+        #contestants-panel.state-minimized {
+            height: 54px !important;
+            min-height: 54px !important;
+            max-height: 54px !important;
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+        }
+        
+        #contestants-panel.state-minimized > *:not(#drag-handle-bar) {
+            display: none !important;
+        }
+
+        /* โหมดขยายขึ้นบนสุด (Expanded) */
+        #contestants-panel.state-expanded {
+            position: absolute !important;
+            top: 110px !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            left: 24px !important;
+            z-index: 100 !important;
+            height: auto !important;
+            max-height: calc(100vh - 130px) !important;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18) !important;
+            background: rgba(241, 247, 255, 0.92) !important;
+        }
+    </style>
+</head>
+<body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden relative">
+
+    <!-- HEADER: ส่วนหัวระบบควบคุม (เอาคำอธิบายออกแล้ว) -->
+    <nav id="top-header" class="relative z-[60] liquid-glass rounded-3xl p-5 mb-5 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-2xl shadow-lg shrink-0">
+                ⚙️
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-blue-900">ระบบควบคุมการแข่งขัน (Admin Console)</h1>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <button id="sync-sheet-btn" class="glass-button bg-white/80 hover:bg-white text-blue-900 px-4 py-3 rounded-2xl border border-white shadow-sm font-bold text-sm flex items-center gap-2 transition-all">
+                <svg id="sync-icon" class="w-4 h-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                รีเฟรชรายชื่อ
+            </button>
+            <div class="bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+                <div class="text-xs font-bold text-green-600 uppercase tracking-wide">ระบบพร้อมใช้งาน</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN PANEL: พื้นที่ควบคุมหลัก -->
+    <main class="relative z-40 grid grid-cols-1 md:grid-cols-12 gap-5 flex-1 min-h-0">
+        
+        <!-- LEFT COLUMN: การเลือกและส่งคำสั่ง (5 คอลัมน์) -->
+        <div class="md:col-span-5 flex flex-col gap-4 min-h-0">
+            
+            <!-- 1. เลือกรอบการแข่งขัน ( Custom Animated Slide Box ) -->
+            <div class="liquid-glass rounded-3xl p-5 shrink-0">
+                <label class="block text-sm font-bold text-blue-900 mb-2">1. เลือกรอบการแข่งขัน</label>
+                
+                <div id="round-box-container" class="relative w-full bg-white/80 border-2 border-blue-200 rounded-2xl h-14 overflow-hidden flex items-center justify-center cursor-ns-resize shadow-inner select-none transition-colors hover:border-blue-400">
+                    <div id="round-display-text" class="font-bold text-blue-900 text-center px-4 text-base">
+                        รอบที่ 1: การแสดงเปิดตัวและแนะนำตัว
+                    </div>
+
+                    <select id="round-select" class="hidden">
+                        <option value="รอบที่ 1">รอบที่ 1: การแสดงเปิดตัวและแนะนำตัว</option>
+                        <option value="รอบที่ 2">รอบที่ 2: การ Speech ตามหัวข้องาน</option>
+                        <option value="รอบที่ 3">รอบที่ 3: การตอบ Random Keyword</option>
+                        <option value="รอบที่ 4">รอบที่ 4: การตอบคำถามจากซองคำถาม</option>
+                        <option value="รอบที่ 5">รอบที่ 5: ตอบคำถาม Final</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. ข้อมูลผู้เข้าแข่งขันที่เลือก + ปุ่มส่งคำสั่ง -->
+            <div class="liquid-glass rounded-3xl p-6 flex-1 flex flex-col justify-between min-h-0 overflow-y-auto">
+                <div class="space-y-4">
+                    <label class="block text-sm font-bold text-blue-900">2. ผู้เข้าแข่งขันที่เลือกอยู่</label>
+                    
+                    <div id="selected-card" class="bg-white/80 border-2 border-blue-100 rounded-2xl p-4 shadow-inner">
+                        <div class="flex items-center gap-4">
+                            <div id="selected-badge" class="w-16 h-16 rounded-full bg-blue-900 text-white font-black text-2xl flex items-center justify-center shadow-md shrink-0">
+                                ?
+                            </div>
+                            <div class="overflow-hidden flex-1">
+                                <div id="selected-name" class="text-lg font-bold text-blue-900 truncate">กรุณาคลิกเลือกผู้แข่งขัน</div>
+                                <div id="selected-info" class="text-xs text-slate-500 mt-1 truncate">เลือกจากตารางรายชื่อ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-2 shrink-0">
+                    <button id="send-command-btn" disabled class="glass-button w-full bg-blue-900/90 hover:bg-blue-900 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-lg py-4 rounded-2xl shadow-[0_4px_15px_rgba(30,58,138,0.3)] transition-all flex justify-center items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+                        เปิดรับคะแนน / ปลดล็อก iPad
+                    </button>
+
+                    <button id="lock-screen-btn" class="w-full bg-rose-600/10 hover:bg-rose-600/20 text-rose-700 font-bold text-xs py-2.5 rounded-xl border border-rose-200 transition-all flex justify-center items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        สั่งล็อกหน้าจอ iPad ทั้งหมด
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: รายชื่อผู้เข้าแข่งขันพร้อมขีดจับลากดึงขึ้น-ลง (7 คอลัมน์) -->
+        <div id="contestants-panel" class="md:col-span-7 liquid-glass rounded-3xl p-5 pt-2 flex flex-col min-h-0 relative">
+            
+            <!-- Drag Handle Bar (ขีดจับลากขึ้น-ลง) -->
+            <div id="drag-handle-bar" class="w-full flex flex-col items-center justify-center pt-1 pb-2 cursor-grab active:cursor-grabbing group select-none shrink-0">
+                <div class="w-20 h-2 bg-blue-500 group-hover:bg-blue-700 rounded-full transition-colors shadow-sm"></div>
+                <span class="text-[10px] font-bold text-blue-800 mt-1 pointer-events-none">ลากขึ้น-ลง หรือคลิกเพื่อปรับขนาด</span>
+            </div>
+
+            <!-- ส่วนหัวตารางรายชื่อ -->
+            <div id="panel-header-content" class="flex justify-between items-center mb-3 shrink-0 gap-3">
+                <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    รายชื่อผู้เข้าแข่งขัน
+                    <span id="contestant-count" class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">0 คน</span>
+                </h3>
+
+                <div id="search-input-box" class="shrink-0">
+                    <input type="text" id="search-input" placeholder="ค้นหาหมายเลข / ชื่อ..." class="bg-white/80 border border-blue-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500 w-52 shadow-inner">
+                </div>
+            </div>
+
+            <!-- รายการผู้เข้าแข่งขัน -->
+            <div id="contestants-container" class="grid grid-cols-1 gap-2.5 overflow-y-auto pb-2 flex-1">
+                <div class="text-center py-20 text-slate-500 flex flex-col items-center gap-2">
+                    <div class="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
+                    <div>กำลังดึงข้อมูลจาก Google Sheets...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Script -->
+    <script>
+        const SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
+        const SHEET_NAME = 'ใบคะแนนเช็คชื่อ';
+        const SHEET_RANGE = 'A3:D32';
+
+        let contestantsData = [];
+        let selectedContestant = null;
+
+        const contestantsContainer = document.getElementById('contestants-container');
+        const contestantCount = document.getElementById('contestant-count');
+        const searchInput = document.getElementById('search-input');
+        const syncBtn = document.getElementById('sync-sheet-btn');
+        const syncIcon = document.getElementById('sync-icon');
+
+        const selectedBadge = document.getElementById('selected-badge');
+        const selectedName = document.getElementById('selected-name');
+        const selectedInfo = document.getElementById('selected-info');
+        const sendCommandBtn = document.getElementById('send-command-btn');
+        const lockScreenBtn = document.getElementById('lock-screen-btn');
+
+        // -----------------------------------------------------------------
+        // ระบบการเปลี่ยนรอบแบบ Animated Slide (Wheel / Touch Swipe / Click)
+        // -----------------------------------------------------------------
+        const roundBoxContainer = document.getElementById('round-box-container');
+        const roundDisplayText = document.getElementById('round-display-text');
+        const roundSelect = document.getElementById('round-select');
+
+        const roundsList = [
+            { code: 'รอบที่ 1', label: 'รอบที่ 1: การแสดงเปิดตัวและแนะนำตัว' },
+            { code: 'รอบที่ 2', label: 'รอบที่ 2: การ Speech ตามหัวข้องาน' },
+            { code: 'รอบที่ 3', label: 'รอบที่ 3: การตอบ Random Keyword' },
+            { code: 'รอบที่ 4', label: 'รอบที่ 4: การตอบคำถามจากซองคำถาม' },
+            { code: 'รอบที่ 5', label: 'รอบที่ 5: ตอบคำถาม Final' }
+        ];
+
+        let currentRoundIdx = 0;
+
+        function updateRoundIndex(newIdx, animDirection) {
+            if (newIdx < 0 || newIdx >= roundsList.length || newIdx === currentRoundIdx) return;
+            
+            currentRoundIdx = newIdx;
+            roundSelect.selectedIndex = currentRoundIdx;
+            
+            roundDisplayText.classList.remove('anim-slide-up', 'anim-slide-down');
+            void roundDisplayText.offsetWidth; // Trigger reflow
+            
+            roundDisplayText.textContent = roundsList[currentRoundIdx].label;
+            
+            if (animDirection === 'up') {
+                roundDisplayText.classList.add('anim-slide-up');
+            } else {
+                roundDisplayText.classList.add('anim-slide-down');
+            }
+        }
+
+        roundBoxContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY > 0) {
+                updateRoundIndex(currentRoundIdx + 1, 'up');
+            } else if (e.deltaY < 0) {
+                updateRoundIndex(currentRoundIdx - 1, 'down');
+            }
+        }, { passive: false });
+
+        let touchStartY = 0;
+        roundBoxContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        roundBoxContainer.addEventListener('touchend', (e) => {
+            if (!touchStartY || e.changedTouches.length !== 1) return;
+            const diffY = touchStartY - e.changedTouches[0].clientY;
+            
+            if (Math.abs(diffY) > 20) {
+                if (diffY > 0) updateRoundIndex(currentRoundIdx + 1, 'up');
+                else updateRoundIndex(currentRoundIdx - 1, 'down');
+            }
+            touchStartY = 0;
+        }, { passive: true });
+
+        roundBoxContainer.addEventListener('click', () => {
+            let nextIdx = (currentRoundIdx + 1) % roundsList.length;
+            updateRoundIndex(nextIdx, 'up');
+        });
+
+        // -----------------------------------------------------------------
+        // ระบบ State Management & Clean Drag Handling (พาเนลรายชื่อ)
+        // -----------------------------------------------------------------
+        const contestantsPanel = document.getElementById('contestants-panel');
+        const dragHandleBar = document.getElementById('drag-handle-bar');
+
+        let currentState = 'normal';
+
+        function setPanelState(newState) {
+            currentState = newState;
+            contestantsPanel.classList.remove('state-minimized', 'state-expanded');
+            
+            if (newState === 'minimized') {
+                contestantsPanel.classList.add('state-minimized');
+            } else if (newState === 'expanded') {
+                contestantsPanel.classList.add('state-expanded');
+            }
+        }
+
+        document.addEventListener('pointerdown', (e) => {
+            if (currentState === 'expanded') {
+                if (!contestantsPanel.contains(e.target)) {
+                    setPanelState('normal');
+                }
+            }
+        });
+
+        let startY = 0;
+        let isDragging = false;
+        let currentDeltaY = 0;
+
+        dragHandleBar.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            currentDeltaY = 0;
+            dragHandleBar.setPointerCapture(e.pointerId);
+            contestantsPanel.style.transition = 'none';
+        });
+
+        dragHandleBar.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            currentDeltaY = startY - e.clientY;
+            contestantsPanel.style.transform = `translateY(${-currentDeltaY * 0.25}px)`;
+        });
+
+        dragHandleBar.addEventListener('pointerup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            contestantsPanel.style.transition = '';
+            contestantsPanel.style.transform = '';
+
+            if (currentDeltaY > 40) {
+                if (currentState === 'minimized') setPanelState('normal');
+                else setPanelState('expanded');
+            } else if (currentDeltaY < -40) {
+                if (currentState === 'expanded') setPanelState('normal');
+                else setPanelState('minimized');
+            } else if (Math.abs(currentDeltaY) <= 10) {
+                if (currentState === 'normal') setPanelState('expanded');
+                else if (currentState === 'expanded') setPanelState('normal');
+                else setPanelState('normal');
+            }
+        });
+
+        // -----------------------------------------------------------------
+        // ดึงข้อมูลผู้เข้าแข่งขันจาก Google Sheets (กรองเฉพาะชื่อที่มีอยู่จริงเท่านั้น)
+        // -----------------------------------------------------------------
+        async function fetchContestants() {
+            syncIcon.classList.add('animate-spin');
+            contestantsContainer.innerHTML = `
+                <div class="text-center py-20 text-slate-500 flex flex-col items-center gap-2">
+                    <div class="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
+                    <div>กำลังดึงข้อมูลจาก Google Sheets...</div>
+                </div>
+            `;
+
+            try {
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&range=${encodeURIComponent(SHEET_RANGE)}`;
+                const response = await fetch(gvizUrl);
+                const text = await response.text();
+                
+                const jsonString = text.substring(47, text.length - 2);
+                const data = JSON.parse(jsonString);
+
+                contestantsData = [];
+
+                if (data.table && data.table.rows) {
+                    data.table.rows.forEach(row => {
+                        if (row.c && row.c[0] && row.c[0].v) {
+                            const code = String(row.c[0].v || '').trim();
+                            const name = String(row.c[1] ? (row.c[1].v || '') : '').trim();
+                            const nickname = String(row.c[2] ? (row.c[2].v || '') : '').trim();
+                            const faculty = String(row.c[3] ? (row.c[3].v || '') : '').trim();
+
+                            // ตรวจสอบ: ต้องมีรหัส และชื่อต้องไม่ว่างเปล่า และต้องไม่ใช่ข้อความหัวข้อ/ตัวอย่างตัวอย่างเช่น "ชื่อ-นามสกุล"
+                            const isValidName = name !== '' && !name.includes('ชื่อ-นามสกุล') && !name.includes('ชื่อ - นามสกุล');
+
+                            if (code !== '' && isValidName) {
+                                contestantsData.push({ code, name, nickname, faculty });
+                            }
+                        }
+                    });
+                }
+
+                contestantsData = contestantsData.slice(0, 30);
+                renderContestants(contestantsData);
+                contestantCount.textContent = `${contestantsData.length} คน`;
+
+            } catch (err) {
+                console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', err);
+                contestantsContainer.innerHTML = `
+                    <div class="text-center py-10 text-rose-600 bg-rose-50 border border-rose-200 rounded-2xl font-bold">
+                        ⚠️ ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ กรุณาตรวจสอบการแชร์ของชีท
+                    </div>
+                `;
+            } finally {
+                syncIcon.classList.remove('animate-spin');
+            }
+        }
+
+        // แสดงรายการผู้เข้าแข่งขัน
+        function renderContestants(list) {
+            if (list.length === 0) {
+                contestantsContainer.innerHTML = `<div class="text-center py-10 text-slate-500 font-bold">ไม่พบรายชื่อผู้เข้าแข่งขัน</div>`;
+                return;
+            }
+
+            contestantsContainer.innerHTML = '';
+            list.forEach(item => {
+                const isSelected = selectedContestant && selectedContestant.code === item.code;
+                const cardHTML = `
+                    <div data-code="${item.code}" class="contestant-card glass-card p-3.5 rounded-2xl cursor-pointer flex items-stretch justify-between gap-4 ${isSelected ? 'active-card' : ''}">
+                        <div class="flex items-center gap-3.5 overflow-hidden flex-1">
+                            <div class="w-12 h-12 rounded-full bg-blue-900 text-white font-bold text-base flex items-center justify-center shrink-0 shadow">
+                                ${item.code}
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="font-bold text-slate-800 text-base truncate leading-snug">
+                                    ${item.name} ${item.nickname ? `<span class="text-slate-500 font-normal">(${item.nickname})</span>` : ''}
+                                </div>
+                                <div class="text-xs text-slate-500 truncate mt-0.5">${item.faculty || 'ไม่ระบุคณะ'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="shrink-0 flex items-stretch">
+                            <button type="button" class="px-7 py-3 rounded-2xl border-2 font-black text-base shadow-sm transition-all flex items-center justify-center ${isSelected ? 'bg-blue-900 text-white border-blue-900 shadow-md scale-105' : 'bg-white hover:bg-blue-900 hover:text-white text-blue-900 border-blue-200'}">
+                                ${isSelected ? 'เลือกแล้ว ✓' : 'เลือก'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                contestantsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // Event Delegation สำหรับเลือกผู้เข้าแข่งขัน
+        contestantsContainer.addEventListener('click', (e) => {
+            const card = e.target.closest('.contestant-card');
+            if (card) {
+                const code = card.dataset.code;
+                selectContestant(code);
+            }
+        });
+
+        function selectContestant(code) {
+            selectedContestant = contestantsData.find(c => c.code === code);
+            if (selectedContestant) {
+                selectedBadge.textContent = selectedContestant.code;
+                selectedName.textContent = selectedContestant.name;
+                selectedInfo.textContent = `ชื่อเล่น: ${selectedContestant.nickname || '-'} | คณะ: ${selectedContestant.faculty || '-'}`;
+                
+                sendCommandBtn.disabled = false;
+                renderContestants(contestantsData);
+            }
+        }
+
+        // ค้นหา
+        searchInput.addEventListener('input', function() {
+            const q = this.value.toLowerCase().trim();
+            const filtered = contestantsData.filter(item => 
+                item.code.toLowerCase().includes(q) ||
+                item.name.toLowerCase().includes(q) ||
+                item.nickname.toLowerCase().includes(q) ||
+                item.faculty.toLowerCase().includes(q)
+            );
+            renderContestants(filtered);
+        });
+
+        // ส่งสัญญาณปลดล็อก iPad
+        sendCommandBtn.addEventListener('click', () => {
+            if (!selectedContestant) return;
+
+            const roundName = roundSelect.value;
+            const fullContestantString = `${selectedContestant.code} - ${selectedContestant.name}`;
+            const localImageFilename = `${selectedContestant.code}.png`;
+
+            const commandData = {
+                action: 'START_VOTING',
+                roundName: roundName,
+                contestantName: fullContestantString,
+                contestantCode: selectedContestant.code,
+                contestantImage: localImageFilename,
+                timestamp: new Date().getTime()
+            };
+
+            localStorage.setItem('adminCommand', JSON.stringify(commandData));
+
+            const origText = sendCommandBtn.innerHTML;
+            sendCommandBtn.innerHTML = `✅ ส่งสัญญาณปลดล็อกแล้ว!`;
+            sendCommandBtn.classList.remove('bg-blue-900/90');
+            sendCommandBtn.classList.add('bg-green-600');
+
+            setTimeout(() => {
+                sendCommandBtn.innerHTML = origText;
+                sendCommandBtn.classList.remove('bg-green-600');
+                sendCommandBtn.classList.add('bg-blue-900/90');
+            }, 1500);
+        });
+
+        // สั่งล็อกหน้าจอ iPad
+        lockScreenBtn.addEventListener('click', () => {
+            const commandData = {
+                action: 'LOCK_SCREEN',
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem('adminCommand', JSON.stringify(commandData));
+
+            alert('สั่งล็อกหน้าจอ iPad ทุกเครื่องเรียบร้อยแล้ว');
+        });
+
+        syncBtn.addEventListener('click', fetchContestants);
+
+        // เริ่มต้นโหลด
+        fetchContestants();
+    </script>
+</body>
+</html>
