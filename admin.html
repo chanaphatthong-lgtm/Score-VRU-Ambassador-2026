@@ -15,6 +15,7 @@
             font-family: 'Noto Sans Thai', sans-serif;
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
             min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
         }
 
         ::-webkit-scrollbar {
@@ -33,6 +34,7 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.7);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            transition: all 0.4s ease;
         }
         
         .glass-card {
@@ -92,22 +94,89 @@
 
         #contestants-panel.state-expanded {
             position: absolute !important;
-            top: 110px !important;
+            top: 180px !important;
             bottom: 24px !important;
             right: 24px !important;
             left: 24px !important;
             z-index: 100 !important;
             height: auto !important;
-            max-height: calc(100vh - 130px) !important;
+            max-height: calc(100vh - 200px) !important;
             box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18) !important;
             background: rgba(241, 247, 255, 0.92) !important;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* 🌙 DARK MODE STYLES (โหมดมืดสำหรับ Admin) */
+        /* ----------------------------------------------------------------- */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .liquid-glass {
+            background: rgba(17, 24, 39, 0.65);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .glass-card {
+            background: rgba(31, 41, 55, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #f3f4f6;
+        }
+
+        body.dark-mode .glass-card:hover {
+            background: rgba(31, 41, 55, 0.85);
+        }
+
+        body.dark-mode .active-card {
+            background: rgba(30, 58, 138, 0.6) !important;
+            border-color: rgba(96, 165, 250, 0.8) !important;
+        }
+
+        body.dark-mode h1, 
+        body.dark-mode h3, 
+        body.dark-mode label,
+        body.dark-mode #selected-name,
+        body.dark-mode .judge-header-title {
+            color: #93c5fd !important;
+        }
+
+        body.dark-mode #round-box-container, 
+        body.dark-mode #selected-card {
+            background: rgba(31, 41, 55, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        body.dark-mode #round-display-text {
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode #search-input {
+            background: rgba(17, 24, 39, 0.8) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-mode .header-bg-box {
+            background: rgba(31, 41, 55, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #f3f4f6 !important;
+        }
+
+        body.dark-mode #contestants-panel.state-expanded {
+            background: rgba(17, 24, 39, 0.95) !important;
+        }
+
+        body.dark-mode .contestant-name-text {
+            color: #f1f5f9 !important;
         }
     </style>
 </head>
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden relative">
 
-    <!-- HEADER: ส่วนหัวระบบควบคุม -->
-    <nav id="top-header" class="relative z-[60] liquid-glass rounded-3xl p-5 mb-5 flex justify-between items-center shrink-0">
+    <!-- HEADER: ส่วนหัวระบบควบคุม + แสดงสถานะการเชื่อมต่อ MQTT -->
+    <nav id="top-header" class="relative z-[60] liquid-glass rounded-3xl p-5 mb-4 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-2xl shadow-lg shrink-0">
                 ⚙️
@@ -118,21 +187,40 @@
         </div>
         
         <div class="flex items-center gap-3">
-            <!-- ส่วนแสดงรายชื่อเครื่อง iPad ที่กำลังเชื่อมต่ออยู่จริง -->
-            <div id="connected-devices-container" class="flex items-center gap-2">
-                <span class="text-xs text-slate-400 font-bold bg-white/60 px-3 py-2.5 rounded-2xl border border-white">📱 รอเชื่อมต่อ iPad...</span>
-            </div>
+            <!-- ปุ่มสลับโหมด Dark Mode / Light Mode -->
+            <button id="theme-toggle-btn" class="header-bg-box bg-white/80 hover:bg-white text-blue-900 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center justify-center transition-all cursor-pointer">
+                <span id="theme-icon-moon" class="text-lg">🌙</span>
+                <span id="theme-icon-sun" class="text-lg hidden">☀️</span>
+            </button>
 
-            <button id="sync-sheet-btn" class="glass-button bg-white/80 hover:bg-white text-blue-900 px-4 py-3 rounded-2xl border border-white shadow-sm font-bold text-sm flex items-center gap-2 transition-all">
+            <button id="sync-sheet-btn" class="header-bg-box glass-button bg-white/80 hover:bg-white text-blue-900 px-4 py-3 rounded-2xl border border-white shadow-sm font-bold text-sm flex items-center gap-2 transition-all">
                 <svg id="sync-icon" class="w-4 h-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 รีเฟรชรายชื่อ
             </button>
-            <div class="bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2">
+            
+            <div class="header-bg-box bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2">
                 <div id="status-dot" class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div>
                 <div id="connection-status" class="text-xs font-bold text-yellow-600 uppercase tracking-wide">กำลังเชื่อมต่อสัญญาณ...</div>
             </div>
         </div>
     </nav>
+
+    <!-- JUDGES CONNECTION BAR: แถบตรวจติดตามเน็ตและสถานะกรรมการคนที่ 1 - 5 -->
+    <div class="relative z-[55] liquid-glass rounded-3xl p-3.5 mb-5 shrink-0 flex items-center justify-between gap-3 overflow-x-auto">
+        <div class="flex items-center gap-2 shrink-0 border-r border-blue-200/80 pr-4">
+            <span class="judge-header-title text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                📱 สถานะเครื่องกรรมการ
+            </span>
+            <span id="connected-count-badge" class="bg-blue-900 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                0/5 พร้อมใช้งาน
+            </span>
+        </div>
+
+        <!-- กล่องแสดงสถานะแบบเจาะจง 5 เครื่อง -->
+        <div id="judges-status-grid" class="flex items-center gap-3 flex-1 justify-around min-w-[650px]">
+            <!-- จะถูกสร้างผ่าน JavaScript (iPad 01 ถึง iPad 05) -->
+        </div>
+    </div>
 
     <!-- MAIN PANEL -->
     <main class="relative z-40 grid grid-cols-1 md:grid-cols-12 gap-5 flex-1 min-h-0">
@@ -171,7 +259,7 @@
                             </div>
                             <div class="overflow-hidden flex-1">
                                 <div id="selected-name" class="text-lg font-bold text-blue-900 truncate">กรุณาคลิกเลือกผู้แข่งขัน</div>
-                                <div id="selected-info" class="text-xs text-slate-500 mt-1 truncate">เลือกจากตารางรายชื่อ</div>
+                                <div id="selected-info" class="text-xs text-slate-400 mt-1 truncate">เลือกจากตารางรายชื่อ</div>
                             </div>
                         </div>
                     </div>
@@ -180,10 +268,10 @@
                 <div class="mt-6 space-y-2 shrink-0">
                     <button id="send-command-btn" disabled class="glass-button w-full bg-blue-900/90 hover:bg-blue-900 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold text-lg py-4 rounded-2xl shadow-[0_4px_15px_rgba(30,58,138,0.3)] transition-all flex justify-center items-center gap-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
-                        เปิดรับคะแนน / ปลดล็อก iPad
+                        เปิดรับคะแนน / ปลดล็อก iPad ทั้งหมด
                     </button>
 
-                    <button id="lock-screen-btn" class="w-full bg-rose-600/10 hover:bg-rose-600/20 text-rose-700 font-bold text-xs py-2.5 rounded-xl border border-rose-200 transition-all flex justify-center items-center gap-1.5">
+                    <button id="lock-screen-btn" class="w-full bg-rose-600/10 hover:bg-rose-600/20 text-rose-500 font-bold text-xs py-2.5 rounded-xl border border-rose-200/40 transition-all flex justify-center items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         สั่งล็อกหน้าจอ iPad ทั้งหมด
                     </button>
@@ -225,6 +313,39 @@
 
     <!-- Script -->
     <script>
+        // -----------------------------------------------------------------
+        // ระบบสลับโหมดมืด Dark Mode
+        // -----------------------------------------------------------------
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeIconMoon = document.getElementById('theme-icon-moon');
+        const themeIconSun = document.getElementById('theme-icon-sun');
+
+        function enableDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                themeIconMoon.classList.add('hidden');
+                themeIconSun.classList.remove('hidden');
+                localStorage.setItem('admin_theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeIconMoon.classList.remove('hidden');
+                themeIconSun.classList.add('hidden');
+                localStorage.setItem('admin_theme', 'light');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = !document.body.classList.contains('dark-mode');
+            enableDarkMode(isDark);
+        });
+
+        if (localStorage.getItem('admin_theme') === 'dark') {
+            enableDarkMode(true);
+        }
+
+        // -----------------------------------------------------------------
+        // ตัวแปร Google Sheet ข้อมูลผู้แข่งขัน
+        // -----------------------------------------------------------------
         const SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
         const SHEET_NAME = 'ใบคะแนนเช็คชื่อ';
         const SHEET_RANGE = 'A3:D32';
@@ -246,15 +367,80 @@
         
         const statusDot = document.getElementById('status-dot');
         const connectionStatus = document.getElementById('connection-status');
-        const connectedDevicesContainer = document.getElementById('connected-devices-container');
+        const judgesStatusGrid = document.getElementById('judges-status-grid');
+        const connectedCountBadge = document.getElementById('connected-count-badge');
 
         // -----------------------------------------------------------------
-        // ระบบ MQTT Real-time Broker & Device Tracker
+        // ระบบติดตามสถานะเน็ตเครื่องกรรมการ 1 - 5 (iPad 01 - iPad 05)
+        // -----------------------------------------------------------------
+        const EXPECTED_JUDGES = [
+            { id: 'iPad 01', label: 'คนที่ 1' },
+            { id: 'iPad 02', label: 'คนที่ 2' },
+            { id: 'iPad 03', label: 'คนที่ 3' },
+            { id: 'iPad 04', label: 'คนที่ 4' },
+            { id: 'iPad 05', label: 'คนที่ 5' }
+        ];
+
+        const judgeDevicesState = {};
+        EXPECTED_JUDGES.forEach(j => {
+            judgeDevicesState[j.id] = {
+                id: j.id,
+                label: j.label,
+                lastSeen: 0,
+                judgeName: ''
+            };
+        });
+
+        function renderJudgesStatus() {
+            const now = Date.now();
+            let onlineCount = 0;
+
+            judgesStatusGrid.innerHTML = EXPECTED_JUDGES.map(j => {
+                const device = judgeDevicesState[j.id];
+                const isOnline = (now - device.lastSeen) < 6000;
+                
+                if (isOnline) onlineCount++;
+
+                return `
+                    <div class="flex items-center gap-2.5 px-3 py-2 rounded-2xl border transition-all ${
+                        isOnline 
+                        ? 'bg-emerald-500/10 border-emerald-400/50 text-emerald-950 dark:text-emerald-300 shadow-sm' 
+                        : 'bg-rose-500/10 border-rose-300/30 text-rose-900 dark:text-rose-400 opacity-60'
+                    }">
+                        <div class="relative flex items-center justify-center">
+                            <span class="w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-1.5 leading-none">
+                                <span class="font-black text-xs">${j.id}</span>
+                                <span class="text-[10px] font-bold text-slate-400">(${j.label})</span>
+                            </div>
+                            <span class="text-[10px] font-semibold ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'} mt-1">
+                                ${isOnline ? '🟢 เชื่อมต่อแล้ว' : '🔴 ขาดการเชื่อมต่อ'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            connectedCountBadge.textContent = `${onlineCount}/5 พร้อมใช้งาน`;
+            if (onlineCount === 5) {
+                connectedCountBadge.className = "bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm";
+            } else if (onlineCount > 0) {
+                connectedCountBadge.className = "bg-amber-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm";
+            } else {
+                connectedCountBadge.className = "bg-slate-400 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full";
+            }
+        }
+
+        setInterval(renderJudgesStatus, 2000);
+        renderJudgesStatus();
+
+        // -----------------------------------------------------------------
+        // ระบบ MQTT Real-time Broker
         // -----------------------------------------------------------------
         const CMD_TOPIC = 'vru_pageant_2025/admin_cmd';
         const STATUS_TOPIC = 'vru_pageant_2025/device_status';
-        
-        const activeDevices = {}; // เก็บรายการ iPad ที่ออนไลน์อยู่
 
         const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
@@ -264,7 +450,6 @@
             connectionStatus.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
             connectionStatus.textContent = 'ระบบพร้อมใช้งาน (MQTT ONLINE)';
 
-            // ดักฟัง Topic สถานะเครื่อง iPad
             mqttClient.subscribe(STATUS_TOPIC, { qos: 0 });
         });
 
@@ -272,13 +457,10 @@
             if (topic === STATUS_TOPIC) {
                 try {
                     const data = JSON.parse(message.toString());
-                    if (data.deviceId) {
-                        activeDevices[data.deviceId] = {
-                            name: data.deviceId,
-                            judgeName: data.judgeName || '',
-                            lastSeen: Date.now()
-                        };
-                        renderConnectedDevices();
+                    if (data.deviceId && judgeDevicesState[data.deviceId]) {
+                        judgeDevicesState[data.deviceId].lastSeen = Date.now();
+                        judgeDevicesState[data.deviceId].judgeName = data.judgeName || '';
+                        renderJudgesStatus();
                     }
                 } catch (e) {
                     console.error('Error parsing device status:', e);
@@ -292,34 +474,6 @@
             connectionStatus.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
             connectionStatus.textContent = 'เชื่อมต่อสัญญาณขัดข้อง';
         });
-
-        // ลบเครื่องที่ขาดการส่ง Heartbeat นานเกิน 6 วินาที
-        setInterval(() => {
-            const now = Date.now();
-            let changed = false;
-            for (const id in activeDevices) {
-                if (now - activeDevices[id].lastSeen > 6000) {
-                    delete activeDevices[id];
-                    changed = true;
-                }
-            }
-            if (changed) renderConnectedDevices();
-        }, 2000);
-
-        function renderConnectedDevices() {
-            const keys = Object.keys(activeDevices);
-            if (keys.length === 0) {
-                connectedDevicesContainer.innerHTML = `<span class="text-xs text-slate-400 font-bold bg-white/60 px-3 py-2.5 rounded-2xl border border-white">📱 รอเชื่อมต่อ iPad...</span>`;
-                return;
-            }
-
-            connectedDevicesContainer.innerHTML = keys.map(id => `
-                <div class="bg-emerald-100/90 border border-emerald-300 text-emerald-900 text-xs px-3 py-2 rounded-2xl font-bold flex items-center gap-2 shadow-sm transition-all">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    📱 ${id}
-                </div>
-            `).join('');
-        }
 
         function sendMqttCommand(commandData) {
             localStorage.setItem('adminCommand', JSON.stringify(commandData));
@@ -521,15 +675,15 @@
                                 ${item.code}
                             </div>
                             <div class="overflow-hidden">
-                                <div class="font-bold text-slate-800 text-base truncate leading-snug">
-                                    ${item.name} ${item.nickname ? `<span class="text-slate-500 font-normal">(${item.nickname})</span>` : ''}
+                                <div class="contestant-name-text font-bold text-slate-800 text-base truncate leading-snug">
+                                    ${item.name} ${item.nickname ? `<span class="text-slate-400 font-normal">(${item.nickname})</span>` : ''}
                                 </div>
-                                <div class="text-xs text-slate-500 truncate mt-0.5">${item.faculty || 'ไม่ระบุคณะ'}</div>
+                                <div class="text-xs text-slate-400 truncate mt-0.5">${item.faculty || 'ไม่ระบุคณะ'}</div>
                             </div>
                         </div>
                         
                         <div class="shrink-0 flex items-stretch">
-                            <button type="button" class="px-7 py-3 rounded-2xl border-2 font-black text-base shadow-sm transition-all flex items-center justify-center ${isSelected ? 'bg-blue-900 text-white border-blue-900 shadow-md scale-105' : 'bg-white hover:bg-blue-900 hover:text-white text-blue-900 border-blue-200'}">
+                            <button type="button" class="px-7 py-3 rounded-2xl border-2 font-black text-base shadow-sm transition-all flex items-center justify-center ${isSelected ? 'bg-blue-900 text-white border-blue-900 shadow-md scale-105' : 'bg-white/80 dark:bg-slate-800 hover:bg-blue-900 hover:text-white text-blue-900 dark:text-blue-300 border-blue-200/60'}">
                                 ${isSelected ? 'เลือกแล้ว ✓' : 'เลือก'}
                             </button>
                         </div>
@@ -575,6 +729,7 @@
                 action: 'START_VOTING',
                 roundName: roundSelect.value,
                 contestantName: `${selectedContestant.code} - ${selectedContestant.name}`,
+                contestantNickname: selectedContestant.nickname || '',
                 contestantCode: selectedContestant.code,
                 contestantImage: `${selectedContestant.code}.png`,
                 timestamp: new Date().getTime()
@@ -602,7 +757,7 @@
             };
 
             sendMqttCommand(commandData);
-            alert('สั่งล็อกหน้าจอ iPad เรียบร้อยแล้ว');
+            alert('สั่งล็อกหน้าจอ iPad ทั้งหมดเรียบร้อยแล้ว');
         });
 
         syncBtn.addEventListener('click', fetchContestants);
