@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PeerJS SDK สำหรับเชื่อมต่อข้ามเครื่องแบบ Real-time -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- MQTT SDK เชื่อมต่อสัญญาณ Real-time เสถียร 100% -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <style>
         body {
@@ -17,18 +17,16 @@
             min-height: 100vh;
         }
 
-        /* ซ่อนแถบสไลด์ (Scrollbar) ทั้งหมด */
         ::-webkit-scrollbar {
             display: none;
             width: 0px;
             background: transparent;
         }
         * {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        /* สไตล์กระจกใส Liquid Glass */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.55);
             backdrop-filter: blur(16px);
@@ -56,7 +54,6 @@
             transform: scale(0.97);
         }
 
-        /* อนิเมชันสไลด์เลื่อนข้อความรอบการแข่งขัน */
         @keyframes slideInUp {
             0% { transform: translateY(100%); opacity: 0; }
             100% { transform: translateY(0); opacity: 1; }
@@ -72,18 +69,15 @@
             animation: slideInDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
-        /* ป้องกันหน้าจอสโครลซ้อนขณะกำลังลาก */
         #drag-handle-bar {
             touch-action: none;
         }
 
-        /* Animation เคลื่อนที่นุ่มนวลในการเปลี่ยนสถานะ */
         #contestants-panel {
             overflow: hidden;
             transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* โหมดพับเก็บล่างสุด (Minimized) */
         #contestants-panel.state-minimized {
             height: 54px !important;
             min-height: 54px !important;
@@ -96,7 +90,6 @@
             display: none !important;
         }
 
-        /* โหมดขยายขึ้นบนสุด (Expanded) */
         #contestants-panel.state-expanded {
             position: absolute !important;
             top: 110px !important;
@@ -130,19 +123,19 @@
                 รีเฟรชรายชื่อ
             </button>
             <div class="bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
-                <div id="connection-status" class="text-xs font-bold text-green-600 uppercase tracking-wide">กำลังเชื่อมต่อระบบ...</div>
+                <div id="status-dot" class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div>
+                <div id="connection-status" class="text-xs font-bold text-yellow-600 uppercase tracking-wide">กำลังเชื่อมต่อสัญญาณ...</div>
             </div>
         </div>
     </nav>
 
-    <!-- MAIN PANEL: พื้นที่ควบคุมหลัก -->
+    <!-- MAIN PANEL -->
     <main class="relative z-40 grid grid-cols-1 md:grid-cols-12 gap-5 flex-1 min-h-0">
         
-        <!-- LEFT COLUMN: การเลือกและส่งคำสั่ง (5 คอลัมน์) -->
+        <!-- LEFT COLUMN -->
         <div class="md:col-span-5 flex flex-col gap-4 min-h-0">
             
-            <!-- 1. เลือกรอบการแข่งขัน ( Custom Animated Slide Box ) -->
+            <!-- 1. เลือกรอบการแข่งขัน -->
             <div class="liquid-glass rounded-3xl p-5 shrink-0">
                 <label class="block text-sm font-bold text-blue-900 mb-2">1. เลือกรอบการแข่งขัน</label>
                 
@@ -194,16 +187,14 @@
 
         </div>
 
-        <!-- RIGHT COLUMN: รายชื่อผู้เข้าแข่งขันพร้อมขีดจับลากดึงขึ้น-ลง (7 คอลัมน์) -->
+        <!-- RIGHT COLUMN -->
         <div id="contestants-panel" class="md:col-span-7 liquid-glass rounded-3xl p-5 pt-2 flex flex-col min-h-0 relative">
             
-            <!-- Drag Handle Bar (ขีดจับลากขึ้น-ลง) -->
             <div id="drag-handle-bar" class="w-full flex flex-col items-center justify-center pt-1 pb-2 cursor-grab active:cursor-grabbing group select-none shrink-0">
                 <div class="w-20 h-2 bg-blue-500 group-hover:bg-blue-700 rounded-full transition-colors shadow-sm"></div>
                 <span class="text-[10px] font-bold text-blue-800 mt-1 pointer-events-none">ลากขึ้น-ลง หรือคลิกเพื่อปรับขนาด</span>
             </div>
 
-            <!-- ส่วนหัวตารางรายชื่อ -->
             <div id="panel-header-content" class="flex justify-between items-center mb-3 shrink-0 gap-3">
                 <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -216,7 +207,6 @@
                 </div>
             </div>
 
-            <!-- รายการผู้เข้าแข่งขัน -->
             <div id="contestants-container" class="grid grid-cols-1 gap-2.5 overflow-y-auto pb-2 flex-1">
                 <div class="text-center py-20 text-slate-500 flex flex-col items-center gap-2">
                     <div class="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
@@ -248,47 +238,40 @@
         const selectedInfo = document.getElementById('selected-info');
         const sendCommandBtn = document.getElementById('send-command-btn');
         const lockScreenBtn = document.getElementById('lock-screen-btn');
+        
+        const statusDot = document.getElementById('status-dot');
         const connectionStatus = document.getElementById('connection-status');
 
         // -----------------------------------------------------------------
-        // ระบบ PeerJS เชื่อมต่อข้ามเครื่องแบบ Real-time
+        // ระบบ MQTT Real-time Broker (HiveMQ Public)
         // -----------------------------------------------------------------
-        const ADMIN_PEER_ID = 'vru-pageant-admin-2025';
-        let ipadConnections = [];
+        const MQTT_TOPIC = 'vru_pageant_2025/admin_cmd';
+        const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
-        const peer = new Peer(ADMIN_PEER_ID);
-
-        peer.on('open', (id) => {
-            console.log('Admin Console Online ID:', id);
-            connectionStatus.textContent = 'ระบบพร้อมใช้งาน (รอ iPad)';
+        mqttClient.on('connect', () => {
+            console.log('✅ Admin MQTT Connected!');
+            statusDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+            connectionStatus.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
+            connectionStatus.textContent = 'ระบบพร้อมใช้งาน (MQTT Online)';
         });
 
-        peer.on('connection', (conn) => {
-            ipadConnections.push(conn);
-            connectionStatus.textContent = `เชื่อมต่อ iPad แล้ว (${ipadConnections.length} เครื่อง)`;
-
-            conn.on('close', () => {
-                ipadConnections = ipadConnections.filter(c => c !== conn);
-                connectionStatus.textContent = ipadConnections.length > 0 
-                    ? `เชื่อมต่อ iPad แล้ว (${ipadConnections.length} เครื่อง)` 
-                    : 'ระบบพร้อมใช้งาน (รอ iPad)';
-            });
+        mqttClient.on('error', (err) => {
+            console.error('MQTT Error:', err);
+            statusDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
+            connectionStatus.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
+            connectionStatus.textContent = 'เชื่อมต่อสัญญาณขัดข้อง';
         });
 
-        function broadcastCommand(commandData) {
-            // สำรอง localStorage หากรันในเครื่องเดียวกัน
+        function sendMqttCommand(commandData) {
             localStorage.setItem('adminCommand', JSON.stringify(commandData));
-
-            // ยิงสัญญาณข้ามเครื่องไปยัง iPad ทุกเครื่องที่ต่ออยู่
-            ipadConnections.forEach(conn => {
-                if (conn && conn.open) {
-                    conn.send(commandData);
-                }
-            });
+            if (mqttClient.connected) {
+                // publish พร้อม retain: true เพื่อให้ iPad เปิดมาทีหลังได้รับข้อมูลทันที
+                mqttClient.publish(MQTT_TOPIC, JSON.stringify(commandData), { retain: true, qos: 1 });
+            }
         }
 
         // -----------------------------------------------------------------
-        // ระบบการเปลี่ยนรอบแบบ Animated Slide (Wheel / Touch Swipe / Click)
+        // ระบบการเปลี่ยนรอบแบบ Animated Slide
         // -----------------------------------------------------------------
         const roundBoxContainer = document.getElementById('round-box-container');
         const roundDisplayText = document.getElementById('round-display-text');
@@ -324,11 +307,8 @@
 
         roundBoxContainer.addEventListener('wheel', (e) => {
             e.preventDefault();
-            if (e.deltaY > 0) {
-                updateRoundIndex(currentRoundIdx + 1, 'up');
-            } else if (e.deltaY < 0) {
-                updateRoundIndex(currentRoundIdx - 1, 'down');
-            }
+            if (e.deltaY > 0) updateRoundIndex(currentRoundIdx + 1, 'up');
+            else if (e.deltaY < 0) updateRoundIndex(currentRoundIdx - 1, 'down');
         }, { passive: false });
 
         let touchStartY = 0;
@@ -353,7 +333,7 @@
         });
 
         // -----------------------------------------------------------------
-        // ระบบ State Management & Clean Drag Handling (พาเนลรายชื่อ)
+        // ระบบ Drag Handling (พาเนลรายชื่อ)
         // -----------------------------------------------------------------
         const contestantsPanel = document.getElementById('contestants-panel');
         const dragHandleBar = document.getElementById('drag-handle-bar');
@@ -364,18 +344,13 @@
             currentState = newState;
             contestantsPanel.classList.remove('state-minimized', 'state-expanded');
             
-            if (newState === 'minimized') {
-                contestantsPanel.classList.add('state-minimized');
-            } else if (newState === 'expanded') {
-                contestantsPanel.classList.add('state-expanded');
-            }
+            if (newState === 'minimized') contestantsPanel.classList.add('state-minimized');
+            else if (newState === 'expanded') contestantsPanel.classList.add('state-expanded');
         }
 
         document.addEventListener('pointerdown', (e) => {
-            if (currentState === 'expanded') {
-                if (!contestantsPanel.contains(e.target)) {
-                    setPanelState('normal');
-                }
+            if (currentState === 'expanded' && !contestantsPanel.contains(e.target)) {
+                setPanelState('normal');
             }
         });
 
@@ -418,7 +393,7 @@
         });
 
         // -----------------------------------------------------------------
-        // ดึงข้อมูลผู้เข้าแข่งขันจาก Google Sheets (กรองเฉพาะชื่อที่มีอยู่จริง)
+        // ดึงข้อมูลผู้เข้าแข่งขันจาก Google Sheets
         // -----------------------------------------------------------------
         async function fetchContestants() {
             syncIcon.classList.add('animate-spin');
@@ -472,7 +447,6 @@
             }
         }
 
-        // แสดงรายการผู้เข้าแข่งขัน
         function renderContestants(list) {
             if (list.length === 0) {
                 contestantsContainer.innerHTML = `<div class="text-center py-10 text-slate-500 font-bold">ไม่พบรายชื่อผู้เข้าแข่งขัน</div>`;
@@ -507,13 +481,9 @@
             });
         }
 
-        // Event Delegation สำหรับเลือกผู้เข้าแข่งขัน
         contestantsContainer.addEventListener('click', (e) => {
             const card = e.target.closest('.contestant-card');
-            if (card) {
-                const code = card.dataset.code;
-                selectContestant(code);
-            }
+            if (card) selectContestant(card.dataset.code);
         });
 
         function selectContestant(code) {
@@ -528,7 +498,6 @@
             }
         }
 
-        // ค้นหา
         searchInput.addEventListener('input', function() {
             const q = this.value.toLowerCase().trim();
             const filtered = contestantsData.filter(item => 
@@ -540,24 +509,20 @@
             renderContestants(filtered);
         });
 
-        // ส่งสัญญาณปลดล็อก iPad
+        // ปุ่มปลดล็อก iPad
         sendCommandBtn.addEventListener('click', () => {
             if (!selectedContestant) return;
 
-            const roundName = roundSelect.value;
-            const fullContestantString = `${selectedContestant.code} - ${selectedContestant.name}`;
-            const localImageFilename = `${selectedContestant.code}.png`;
-
             const commandData = {
                 action: 'START_VOTING',
-                roundName: roundName,
-                contestantName: fullContestantString,
+                roundName: roundSelect.value,
+                contestantName: `${selectedContestant.code} - ${selectedContestant.name}`,
                 contestantCode: selectedContestant.code,
-                contestantImage: localImageFilename,
+                contestantImage: `${selectedContestant.code}.png`,
                 timestamp: new Date().getTime()
             };
 
-            broadcastCommand(commandData);
+            sendMqttCommand(commandData);
 
             const origText = sendCommandBtn.innerHTML;
             sendCommandBtn.innerHTML = `✅ ส่งสัญญาณปลดล็อกแล้ว!`;
@@ -571,20 +536,18 @@
             }, 1500);
         });
 
-        // สั่งล็อกหน้าจอ iPad
+        // ปุ่มสั่งล็อกหน้าจอ iPad
         lockScreenBtn.addEventListener('click', () => {
             const commandData = {
                 action: 'LOCK_SCREEN',
                 timestamp: new Date().getTime()
             };
 
-            broadcastCommand(commandData);
-            alert('สั่งล็อกหน้าจอ iPad ทุกเครื่องเรียบร้อยแล้ว');
+            sendMqttCommand(commandData);
+            alert('สั่งล็อกหน้าจอ iPad เรียบร้อยแล้ว');
         });
 
         syncBtn.addEventListener('click', fetchContestants);
-
-        // เริ่มต้นโหลด
         fetchContestants();
     </script>
 </body>

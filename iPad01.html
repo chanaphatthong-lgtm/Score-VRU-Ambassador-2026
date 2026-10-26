@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- PeerJS SDK สำหรับรับสัญญาณข้ามเครื่องจาก Admin -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- MQTT SDK รับสัญญาณข้ามเครื่องผ่าน WebSocket -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
         body {
@@ -16,7 +16,6 @@
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
             min-height: 100vh;
         }
-        /* สไตล์กระจกใสทั่วไป */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(16px);
@@ -25,7 +24,6 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
         
-        /* สไตล์กระจกขาวสว่าง (สำหรับกล่อง Modal ตรงกลาง) */
         .modal-glass {
             background: rgba(255, 255, 255, 0.85); 
             backdrop-filter: blur(20px);
@@ -38,14 +36,12 @@
             transform: scale(0.97);
         }
         
-        /* ซ่อนลูกศรในช่องกรอกตัวเลข */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
             margin: 0; 
         }
 
-        /* แอนิเมชันเส้นปาดเอียง 45 องศา */
         .animate-wipe-diagonal {
             animation: wipeDiagonalReveal 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
@@ -68,7 +64,6 @@
 
     <!-- OVERLAY: หน้าจอล็อกรอแอดมิน -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
-        <!-- MODAL BOX: ตัวกรอบสไลด์ขึ้น ฟิกซ์ขนาดกว้างยาว คงที่เสมอ -->
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
                 <svg id="icon-lock" class="w-10 h-10 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,10 +80,9 @@
         </div>
     </div>
 
-    <!-- HEADER: ส่วนหัวแสดงข้อมูลรอบและนางงาม -->
+    <!-- HEADER -->
     <nav class="relative z-[60] liquid-glass rounded-3xl p-5 mb-5 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-5">
-            <!-- วงกลมหมายเลข -->
             <div id="profile-circle" class="relative overflow-hidden w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-3xl shadow-lg shrink-0">
                 ?
             </div>
@@ -105,11 +99,10 @@
             </div>
         </div>
         
-        <!-- แถบด้านขวา: สถานะการเชื่อมต่อ+ชื่อ iPad และ ชื่อกรรมการ -->
         <div class="flex items-center gap-3">
             <div class="bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2.5">
-                <div id="conn-dot" class="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
-                <div id="conn-text" class="text-xs font-bold text-green-600 uppercase tracking-wide">เชื่อมต่อแล้ว</div>
+                <div id="conn-dot" class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div>
+                <div id="conn-text" class="text-xs font-bold text-yellow-600 uppercase tracking-wide">กำลังเชื่อมต่อ</div>
                 <div class="h-4 w-[1px] bg-slate-300 mx-0.5"></div>
                 <div class="text-base font-black text-blue-900">iPad 01</div>
             </div>
@@ -120,7 +113,7 @@
         </div>
     </nav>
 
-    <!-- MAIN SCORING PANEL: พื้นที่กรอกคะแนน -->
+    <!-- MAIN SCORING PANEL -->
     <main class="relative z-40 liquid-glass rounded-3xl p-6 flex-1 flex flex-col min-h-0">
         
         <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2 shrink-0">
@@ -128,12 +121,9 @@
             แบบประเมินให้คะแนน (ข้อมูลเชื่อมต่อสดจาก Google Sheets)
         </h3>
 
-        <!-- GRID แบบ 2 คอลัมน์ (แสดงเกณฑ์ไดนามิกจาก Google Sheets) -->
         <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2">
-            <!-- จะถูกสร้างไดนามิกด้วย JavaScript ตามรอบการแข่งขัน -->
         </div>
 
-        <!-- Submit Button -->
         <div class="mt-5 shrink-0">
             <button id="submit-btn" class="glass-button w-full bg-blue-900/90 hover:bg-blue-900 text-white font-bold text-2xl py-5 rounded-2xl shadow-[0_4px_15px_rgba(30,58,138,0.3)] transition-all flex justify-center items-center gap-3">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
@@ -159,25 +149,8 @@
         const contestantDetailsWrapper = document.getElementById('contestant-details-wrapper');
         const criteriaContainer = document.getElementById('criteria-container');
 
-        // ฟังก์ชันจัดการไฟสถานะการเชื่อมต่อ
         const connDot = document.getElementById('conn-dot');
         const connText = document.getElementById('conn-text');
-
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                connDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
-                connText.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
-                connText.textContent = "เชื่อมต่อแล้ว";
-            } else {
-                connDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]";
-                connText.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
-                connText.textContent = "ขาดการเชื่อมต่อ";
-            }
-        }
-        
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
 
         // -----------------------------------------------------------------
         // โครงสร้างแผนผังการดึงข้อมูลตามรอบ
@@ -192,7 +165,6 @@
             'รอบที่ 5': { sheet: 'รอบที่ 5', ranges: ['D11:H11', 'I10'] }
         };
 
-        // ฟังก์ชันดึงเซลล์จาก Google Sheets ตามช่วงที่กำหนด (ดึงข้อความ 100%)
         async function fetchSingleRange(sheetName, range) {
             try {
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
@@ -219,7 +191,6 @@
             }
         }
 
-        // ฟังก์ชันดึงและรวมเกณฑ์ทั้งหมดของรอบนั้นๆ
         async function loadCriteriaForRound(roundName) {
             let matchedKey = Object.keys(ROUND_CONFIGS).find(key => roundName.includes(key)) || 'รอบที่ 1';
             const config = ROUND_CONFIGS[matchedKey];
@@ -274,10 +245,8 @@
             });
         }
         
-        // เริ่มต้นโหลดรอบที่ 1
         loadCriteriaForRound('รอบที่ 1');
 
-        // ฟังก์ชันเมื่อกรรมการกดปุ่ม "บันทึกคะแนนและส่ง"
         submitBtn.addEventListener('click', () => {
             iconLock.classList.remove('opacity-0');
             iconUnlock.classList.add('opacity-0');
@@ -297,8 +266,11 @@
         // -----------------------------------------------------------------
         // ประมวลผลคำสั่งจาก Admin Console
         // -----------------------------------------------------------------
+        let lastProcessedTime = 0;
+
         async function processAdminCommand(command) {
-            if (!command) return;
+            if (!command || command.timestamp === lastProcessedTime) return;
+            lastProcessedTime = command.timestamp;
 
             if (command.action === 'START_VOTING') {
                 const nameParts = (command.contestantName || '').split(' - ');
@@ -310,7 +282,6 @@
                 const newRoundText = command.roundName || 'รอบที่ 1';
                 const isRoundChanged = currentRoundText !== newRoundText;
 
-                // ถ้ารอบเปลี่ยน ดึงเกณฑ์คะแนนของรอบใหม่จาก Google Sheets
                 if (isRoundChanged) {
                     await loadCriteriaForRound(newRoundText);
                 }
@@ -391,45 +362,37 @@
         }
 
         // -----------------------------------------------------------------
-        // ระบบ PeerJS เชื่อมต่อข้ามเครื่องแบบ Real-time กับ Admin
+        // ระบบ MQTT Real-time Receiver (HiveMQ Public Broker)
         // -----------------------------------------------------------------
-        const ADMIN_PEER_ID = 'vru-pageant-admin-2025';
-        let peer = null;
-        let adminConn = null;
+        const MQTT_TOPIC = 'vru_pageant_2025/admin_cmd';
+        const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
-        function initPeerConnection() {
-            peer = new Peer();
+        mqttClient.on('connect', () => {
+            console.log('✅ iPad MQTT Connected!');
+            connDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+            connText.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
+            connText.textContent = "เชื่อมต่อแล้ว";
 
-            peer.on('open', (id) => {
-                console.log('iPad Peer Online ID:', id);
-                connectToAdmin();
-            });
+            mqttClient.subscribe(MQTT_TOPIC, { qos: 1 });
+        });
 
-            peer.on('error', (err) => {
-                console.warn('Peer error, retrying in 3s...', err);
-                setTimeout(connectToAdmin, 3000);
-            });
-        }
+        mqttClient.on('message', (topic, message) => {
+            try {
+                const command = JSON.parse(message.toString());
+                processAdminCommand(command);
+            } catch (err) {
+                console.error('JSON Error:', err);
+            }
+        });
 
-        function connectToAdmin() {
-            if (!peer) return;
-            adminConn = peer.connect(ADMIN_PEER_ID);
+        mqttClient.on('error', (err) => {
+            console.error('MQTT Connection Error:', err);
+            connDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
+            connText.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
+            connText.textContent = "ขาดการเชื่อมต่อ";
+        });
 
-            adminConn.on('open', () => {
-                console.log('✅ เชื่อมต่อกับ Admin Console เรียบร้อยแล้ว!');
-            });
-
-            adminConn.on('data', (data) => {
-                processAdminCommand(data);
-            });
-
-            adminConn.on('close', () => {
-                console.warn('⚠️ หลุดการเชื่อมต่อจาก Admin กำลังลองเชื่อมต่อใหม่...');
-                setTimeout(connectToAdmin, 2000);
-            });
-        }
-
-        // รองรับกรณีทดสอบ Admin และ iPad บนเครื่องเดียวกันผ่าน localStorage
+        // สำรองกรณีเปิดรันเครื่องเดียวกันผ่าน localStorage
         window.addEventListener('storage', (event) => {
             if (event.key === 'adminCommand') {
                 try {
@@ -438,9 +401,6 @@
                 } catch(e) {}
             }
         });
-
-        // เริ่มการเชื่อมต่อ PeerJS
-        initPeerConnection();
     </script>
 </body>
 </html>
