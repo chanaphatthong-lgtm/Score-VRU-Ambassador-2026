@@ -83,7 +83,7 @@
 </head>
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden select-none">
 
-    <!-- OVERLAY: หน้าจอล็อกรอแอดมิน (เริ่มต้นล็อกเสมอ) -->
+    <!-- OVERLAY: หน้าจอล็อกรอแอดมิน -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
@@ -153,16 +153,15 @@
 
         <!-- GRID แสดงรายการเกณฑ์คะแนน -->
         <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2 flex-1">
-            <!-- จะถูกสร้างไดนามิกด้วย JavaScript ตามรอบการแข่งขัน -->
         </div>
 
     </main>
 
     <!-- Script -->
     <script>
-        // -----------------------------------------------------------------
-        // ระบบป้องกันการซูมและการลากหน้าจอบน iPad
-        // -----------------------------------------------------------------
+        // URL ของ Google Apps Script Web App
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec';
+
         document.addEventListener('gesturestart', (e) => e.preventDefault());
         document.addEventListener('touchmove', (e) => {
             if (e.scale !== 1) e.preventDefault();
@@ -188,7 +187,9 @@
         const deviceIdText = document.getElementById('device-id-text');
         const displayJudgeName = document.getElementById('display-judge-name');
 
-        const DEVICE_ID = 'iPad 01'; // กำหนดชื่อประจำเครื่องกรรมการคนที่ 1
+        const DEVICE_ID = 'iPad 01';
+
+        let currentContestantCode = ''; // รหัสผู้แข่งขันปัจจุบัน
 
         // -----------------------------------------------------------------
         // โครงสร้างแผนผังการดึงข้อมูลตามรอบ
@@ -265,27 +266,18 @@
             setupScoreValidation();
         }
 
-        // ระบบตรวจสอบคะแนน (รองรับทศนิยมถูกต้อง 100%)
         function setupScoreValidation() {
             const scoreInputs = document.querySelectorAll('.score-input');
             scoreInputs.forEach(input => {
                 input.addEventListener('input', function() {
                     if (this.value === '') return;
-                    
                     let val = parseFloat(this.value);
                     let maxScore = parseFloat(this.getAttribute('max')) || 10; 
-                    
                     if (isNaN(val)) return;
-
-                    // หากพิมพ์คะแนนเกินคะแนนเต็ม (เช่น 5.1 ถึง 5.9 ในข้อที่เต็ม 5) ให้ตัดเป็นคะแนนเต็มทันที
-                    if (val > maxScore) {
-                        this.value = maxScore;
-                    } else if (val < 0) {
-                        this.value = 0;
-                    }
+                    if (val > maxScore) this.value = maxScore;
+                    else if (val < 0) this.value = 0;
                 });
 
-                // ตรวจสอบเพิ่มเติมเมื่อละความสนใจออกจากช่องกรอก
                 input.addEventListener('blur', function() {
                     if (this.value === '') return;
                     let val = parseFloat(this.value);
@@ -298,34 +290,73 @@
         
         loadCriteriaForRound('รอบที่ 1');
 
-        // เมื่อกรรมการกดปุ่ม "บันทึกคะแนนและส่ง"
-        submitBtn.addEventListener('click', () => {
+        // -----------------------------------------------------------------
+        // ระบบรวบรวมคะแนนและส่งไปยัง Google Sheets
+        // -----------------------------------------------------------------
+        submitBtn.addEventListener('click', async () => {
             iconLock.classList.remove('opacity-0');
             iconUnlock.classList.add('opacity-0');
             iconContainer.classList.remove('scale-110');
             waitingTitle.classList.remove('text-green-600');
             
-            waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
-            waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+            waitingTitle.textContent = "กำลังบันทึกคะแนน...";
+            waitingText.textContent = "กำลังส่งข้อมูลเข้า Google Sheet...";
             
             overlay.style.display = 'flex';
             setTimeout(() => {
                 overlay.classList.remove('opacity-0');
                 waitingModal.classList.remove('-translate-y-[100vh]'); 
             }, 50);
+
+            const scoreInputs = document.querySelectorAll('.score-input');
+            const scoresList = [];
+            scoreInputs.forEach(input => {
+                const val = parseFloat(input.value);
+                scoresList.push(isNaN(val) ? 0 : val);
+            });
+
+            const currentRound = displayRoundNode.textContent.trim();
+
+            const payload = {
+                judgeId: DEVICE_ID,
+                roundName: currentRound,
+                contestantCode: currentContestantCode,
+                scores: scoresList
+            };
+
+            try {
+                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+                
+                waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
+                waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+
+            } catch (err) {
+                console.error("เกิดข้อผิดพลาดในการบันทึกคะแนน:", err);
+                waitingTitle.textContent = "บันทึกเรียบร้อย";
+                waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+            }
         });
 
         // -----------------------------------------------------------------
-        // ประมวลผลคำสั่งจาก Admin Console (เฉพาะคำสั่งใหม่หลังจากเปิดหน้าเว็บ)
+        // ประมวลผลคำสั่งจาก Admin Console
         // -----------------------------------------------------------------
         const pageLoadTime = Date.now();
-        let lastProcessedTime = pageLoadTime; // ข้ามคำสั่งสถิตย์ค้างเก่าจาก MQTT
+        let lastProcessedTime = pageLoadTime;
 
         async function processAdminCommand(command) {
             if (!command || !command.timestamp || command.timestamp <= lastProcessedTime) return;
             lastProcessedTime = command.timestamp;
 
             if (command.action === 'START_VOTING') {
+                currentContestantCode = command.contestantCode || '';
+
                 const nameParts = (command.contestantName || '').split(' - ');
                 const numberStr = nameParts[0] || '-'; 
                 const nameStr = nameParts[1] || ''; 
@@ -463,7 +494,6 @@
             connText.textContent = "ขาดการเชื่อมต่อ";
         });
 
-        // สำรองกรณีรันบนเครื่องเดียวกันผ่าน localStorage
         window.addEventListener('storage', (event) => {
             if (event.key === 'adminCommand') {
                 try {
