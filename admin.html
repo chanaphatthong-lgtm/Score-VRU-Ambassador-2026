@@ -36,6 +36,15 @@
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
             transition: all 0.4s ease;
         }
+
+        .modal-glass {
+            background: rgba(255, 255, 255, 0.88); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 40px 0 rgba(31, 38, 135, 0.15);
+            transition: all 0.3s ease;
+        }
         
         .glass-card {
             background: rgba(255, 255, 255, 0.75);
@@ -106,7 +115,7 @@
         }
 
         /* ----------------------------------------------------------------- */
-        /* 🌙 DARK MODE STYLES (โหมดมืดสำหรับ Admin) */
+        /* 🌙 DARK MODE STYLES */
         /* ----------------------------------------------------------------- */
         body.dark-mode {
             background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
@@ -117,6 +126,12 @@
             background: rgba(17, 24, 39, 0.65);
             border-color: rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .modal-glass {
+            background: rgba(17, 24, 39, 0.92);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.7);
         }
 
         body.dark-mode .glass-card {
@@ -175,6 +190,20 @@
 </head>
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden relative">
 
+    <!-- MODAL: แจ้งเตือนสั่งล็อกหน้าจอ -->
+    <div id="lock-modal-overlay" class="fixed inset-0 bg-slate-950/50 backdrop-blur-md z-[100] hidden flex items-center justify-center transition-all duration-300 opacity-0">
+        <div id="lock-modal-card" class="modal-glass w-[380px] p-6 rounded-3xl flex flex-col items-center text-center shadow-2xl border border-white/40 transform scale-95 transition-all duration-300">
+            <div class="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mb-4 shrink-0">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-blue-900 dark:text-blue-300 mb-1">สั่งล็อกหน้าจอแล้ว</h3>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">ส่งสัญญาณล็อกหน้าจอ iPad ของกรรมการทั้งหมดเรียบร้อยแล้ว</p>
+            <button id="close-lock-modal-btn" class="glass-button w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-2xl transition-all shadow-md">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
     <!-- HEADER: ส่วนหัวระบบควบคุม + แสดงสถานะการเชื่อมต่อ MQTT -->
     <nav id="top-header" class="relative z-[60] liquid-glass rounded-3xl p-5 mb-4 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-4">
@@ -216,9 +245,7 @@
             </span>
         </div>
 
-        <!-- กล่องแสดงสถานะแบบเจาะจง 5 เครื่อง -->
         <div id="judges-status-grid" class="flex items-center gap-3 flex-1 justify-around min-w-[650px]">
-            <!-- จะถูกสร้างผ่าน JavaScript (iPad 01 ถึง iPad 05) -->
         </div>
     </div>
 
@@ -342,6 +369,41 @@
         if (localStorage.getItem('admin_theme') === 'dark') {
             enableDarkMode(true);
         }
+
+        // -----------------------------------------------------------------
+        // ระบบ Custom Lock Modal UI
+        // -----------------------------------------------------------------
+        const lockModalOverlay = document.getElementById('lock-modal-overlay');
+        const lockModalCard = document.getElementById('lock-modal-card');
+        const closeLockModalBtn = document.getElementById('close-lock-modal-btn');
+        let autoCloseModalTimer = null;
+
+        function showLockModal() {
+            clearTimeout(autoCloseModalTimer);
+            lockModalOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                lockModalOverlay.classList.remove('opacity-0');
+                lockModalCard.classList.remove('scale-95');
+                lockModalCard.classList.add('scale-100');
+            }, 10);
+
+            // ปิดอัตโนมัติเมื่อครบ 2.5 วินาที
+            autoCloseModalTimer = setTimeout(hideLockModal, 2500);
+        }
+
+        function hideLockModal() {
+            lockModalOverlay.classList.add('opacity-0');
+            lockModalCard.classList.remove('scale-100');
+            lockModalCard.classList.add('scale-95');
+            setTimeout(() => {
+                lockModalOverlay.classList.add('hidden');
+            }, 300);
+        }
+
+        closeLockModalBtn.addEventListener('click', hideLockModal);
+        lockModalOverlay.addEventListener('click', (e) => {
+            if (e.target === lockModalOverlay) hideLockModal();
+        });
 
         // -----------------------------------------------------------------
         // ตัวแปร Google Sheet ข้อมูลผู้แข่งขัน
@@ -749,7 +811,7 @@
             }, 1500);
         });
 
-        // ปุ่มสั่งล็อกหน้าจอ iPad
+        // ปุ่มสั่งล็อกหน้าจอ iPad (ใช้ Custom Modal)
         lockScreenBtn.addEventListener('click', () => {
             const commandData = {
                 action: 'LOCK_SCREEN',
@@ -757,7 +819,7 @@
             };
 
             sendMqttCommand(commandData);
-            alert('สั่งล็อกหน้าจอ iPad ทั้งหมดเรียบร้อยแล้ว');
+            showLockModal();
         });
 
         syncBtn.addEventListener('click', fetchContestants);
