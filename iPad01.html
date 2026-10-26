@@ -189,7 +189,7 @@
                 <div id="profile-circle" class="relative overflow-hidden w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold text-3xl shadow-lg shrink-0">
                     ?
                 </div>
-                <!-- ชื่อเล่นใต้รูปภาพ -->
+                <!-- ชื่อเล่นใต้รูปภาพ (เอาวงเล็บออกแล้ว) -->
                 <div id="display-nickname-wrapper" class="mt-1 flex justify-center">
                     <span id="display-nickname" class="text-xs font-bold text-blue-900 bg-white/80 px-2.5 py-0.5 rounded-full border border-blue-200 shadow-sm inline-block max-w-[90px] truncate text-center">
                         -
@@ -211,20 +211,22 @@
         </div>
         
         <div class="flex items-center gap-3">
-            <!-- ปุ่มสลับโหมด Dark Mode / Light Mode -->
-            <button id="theme-toggle-btn" class="header-bg-box bg-white/70 hover:bg-white/90 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center justify-center transition-all cursor-pointer">
+            <!-- ปุ่มสลับโหมด Dark Mode / Light Mode (กำหนดความสูง h-12) -->
+            <button id="theme-toggle-btn" class="header-bg-box bg-white/70 hover:bg-white/90 px-4 h-12 rounded-2xl border border-white shadow-sm flex items-center justify-center transition-all cursor-pointer">
                 <span id="theme-icon-moon" class="text-lg">🌙</span>
                 <span id="theme-icon-sun" class="text-lg hidden">☀️</span>
             </button>
 
-            <div class="header-bg-box bg-white/70 px-4 py-3 rounded-2xl border border-white shadow-sm flex items-center gap-2.5">
+            <!-- กล่องแสดงสถานะการเชื่อมต่อ (กำหนดความสูง h-12) -->
+            <div class="header-bg-box bg-white/70 px-4 h-12 rounded-2xl border border-white shadow-sm flex items-center gap-2.5">
                 <div id="conn-dot" class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse"></div>
                 <div id="conn-text" class="text-xs font-bold text-yellow-600 uppercase tracking-wide">กำลังเชื่อมต่อ</div>
                 <div class="h-4 w-[1px] bg-slate-300 mx-0.5"></div>
                 <div id="device-id-text" class="text-base font-black text-blue-900">iPad 01</div>
             </div>
             
-            <div class="header-bg-box bg-white/70 px-6 py-3 rounded-2xl border border-white shadow-sm flex items-center justify-center">
+            <!-- กล่องแสดงชื่อกรรมการ (กำหนดความสูง h-12) -->
+            <div class="header-bg-box bg-white/70 px-6 h-12 rounded-2xl border border-white shadow-sm flex items-center justify-center">
                 <div id="display-judge-name" class="text-lg font-black text-blue-900">ผศ. ดร. ภิศักดิ์ กัลยาณมิตร</div>
             </div>
         </div>
@@ -284,7 +286,6 @@
             enableDarkMode(isDark);
         });
 
-        // ดึงค่าโหมดที่บันทึกไว้ในความจำเครื่อง
         if (localStorage.getItem('ipad_theme') === 'dark') {
             enableDarkMode(true);
         }
@@ -537,7 +538,9 @@
                     
                     document.getElementById('display-number').textContent = numberStr;
                     document.getElementById('display-name').textContent = nameStr;
-                    displayNicknameNode.textContent = nicknameStr ? `(${nicknameStr})` : '-';
+                    
+                    // แสดงผลชื่อเล่นแบบไม่มีวงเล็บ
+                    displayNicknameNode.textContent = nicknameStr ? nicknameStr : '-';
                     
                     const imageUrl = command.contestantImage || command.imageUrl;
                     if (imageUrl) {

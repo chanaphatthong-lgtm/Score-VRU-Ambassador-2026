@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- กำหนดสีแถบสถานะของเบราว์เซอร์สำหรับ iOS / Safari -->
+    <meta name="theme-color" id="theme-color-meta" content="#f0f7ff">
     <title>Admin Control - VRU Ambassador 2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,16 +13,25 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <style>
+        /* กำหนดสีพื้นหลังให้ครอบคลุมทั้ง HTML เพื่อไม่ให้เกิดขอบขาวเวลา Overscroll บน iPhone */
+        html {
+            background-color: #f0f7ff;
+            height: -webkit-fill-available;
+            transition: background-color 0.4s ease;
+        }
+
         body {
             font-family: 'Noto Sans Thai', sans-serif;
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
             min-height: 100vh;
             min-height: -webkit-fill-available;
             transition: background 0.4s ease, color 0.4s ease;
-        }
-
-        html {
-            height: -webkit-fill-available;
+            
+            /* หลบขอบรอยบาก (Notch) และแถบด้านล่างของ iPhone */
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
         }
 
         ::-webkit-scrollbar {
@@ -120,10 +131,14 @@
         }
 
         /* ----------------------------------------------------------------- */
-        /* 🌙 DARK MODE STYLES */
+        /* 🌙 DARK MODE STYLES (ปรับสีให้กลมกลืนทุกซอกมุม) */
         /* ----------------------------------------------------------------- */
+        html.dark-mode {
+            background-color: #0b0f19 !important;
+        }
+
         body.dark-mode {
-            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
+            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%) !important;
             color: #f1f5f9;
         }
 
@@ -193,10 +208,10 @@
         }
     </style>
 </head>
-<body class="text-slate-800 p-3 sm:p-6 flex flex-col h-screen overflow-hidden relative">
+<body class="text-slate-800 flex flex-col h-screen overflow-hidden relative">
 
     <!-- MODAL: แจ้งเตือนสั่งล็อกหน้าจอ -->
-    <div id="lock-modal-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 transition-all duration-300 opacity-0">
+    <div id="lock-modal-overlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 transition-all duration-300 opacity-0">
         <div id="lock-modal-card" class="modal-glass w-full max-w-[340px] p-5 sm:p-6 rounded-3xl flex flex-col items-center text-center shadow-2xl border border-white/40 transform scale-95 transition-all duration-300">
             <div class="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mb-3 shrink-0">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
@@ -255,7 +270,6 @@
 
         <!-- กล่องแสดงสถานะแบบ Grid บนมือถือ -->
         <div id="judges-status-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 sm:gap-2 flex-1 w-full">
-            <!-- จะถูกสร้างผ่าน JavaScript (iPad 01 ถึง iPad 05) -->
         </div>
     </div>
 
@@ -353,22 +367,27 @@
     <!-- Script -->
     <script>
         // -----------------------------------------------------------------
-        // ระบบสลับโหมดมืด Dark Mode
+        // ระบบสลับโหมดมืด Dark Mode & สลับสีแถบ Safari บน iPhone
         // -----------------------------------------------------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconMoon = document.getElementById('theme-icon-moon');
         const themeIconSun = document.getElementById('theme-icon-sun');
+        const themeColorMeta = document.getElementById('theme-color-meta');
 
         function enableDarkMode(isDark) {
             if (isDark) {
+                document.documentElement.classList.add('dark-mode');
                 document.body.classList.add('dark-mode');
                 themeIconMoon.classList.add('hidden');
                 themeIconSun.classList.remove('hidden');
+                themeColorMeta.setAttribute('content', '#0b0f19'); // สีขอบบน-ล่าง ของ iPhone โหมดมืด
                 localStorage.setItem('admin_theme', 'dark');
             } else {
+                document.documentElement.classList.remove('dark-mode');
                 document.body.classList.remove('dark-mode');
                 themeIconMoon.classList.remove('hidden');
                 themeIconSun.classList.add('hidden');
+                themeColorMeta.setAttribute('content', '#f0f7ff'); // สีขอบบน-ล่าง ของ iPhone โหมดสว่าง
                 localStorage.setItem('admin_theme', 'light');
             }
         }
