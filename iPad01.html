@@ -39,10 +39,12 @@
             overflow: hidden !important;
         }
 
-        body {
+        /* ตั้งค่าเริ่มต้นโหมดสว่าง */
+        html, body {
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
-            transition: background 0.4s ease, color 0.4s ease;
+            background-color: #f0f7ff;
+            transition: background 0.4s ease, background-color 0.4s ease, color 0.4s ease;
         }
 
         input, select {
@@ -60,7 +62,7 @@
         }
 
         .padlock .body {
-            fill: #ffffff; /* พื้นหลังสีขาวสำหรับบังขาซ้ายที่ซ่อนอยู่ */
+            fill: #ffffff;
             stroke: #2563eb; 
             stroke-width: 6;
             stroke-linejoin: round;
@@ -77,7 +79,7 @@
             transition: stroke 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* เมื่อปลดล็อก -> เลื่อนชิ้นส่วนโค้งขึ้น และค่อยๆ เปลี่ยนเป็นสีเขียว */
+        /* เมื่อปลดล็อก -> เลื่อนขึ้น และเปลี่ยนเป็นสีเขียว */
         .is-unlocked .padlock .body,
         .is-unlocked .padlock .shackle,
         .is-unlocked .padlock .keyhole {
@@ -86,21 +88,6 @@
 
         .is-unlocked .padlock .shackle {
             transform: translateY(-12px); 
-        }
-
-        /* รองรับ Dark Mode ของไอคอนแม่กุญแจ */
-        body.dark-mode .padlock .body {
-            fill: #1f2937; /* สีพื้นหลังของวงกลมในโหมดมืด */
-            stroke: #60a5fa; 
-        }
-        body.dark-mode .padlock .shackle,
-        body.dark-mode .padlock .keyhole {
-            stroke: #60a5fa; 
-        }
-        body.dark-mode .is-unlocked .padlock .body,
-        body.dark-mode .is-unlocked .padlock .shackle,
-        body.dark-mode .is-unlocked .padlock .keyhole {
-            stroke: #4ade80 !important; 
         }
 
         /* Glassmorphism Styles */
@@ -119,7 +106,11 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 15px 40px 0 rgba(31, 38, 135, 0.15);
-            transition: all 0.4s ease;
+            transition: transform 0.9s cubic-bezier(0.68, -0.1, 0.265, 1.15), opacity 0.8s ease;
+        }
+
+        #waiting-overlay {
+            transition: opacity 0.9s ease, backdrop-filter 0.9s ease;
         }
 
         .login-card-theme {
@@ -171,10 +162,24 @@
             }
         }
 
-        /* DARK MODE STYLES */
-        body.dark-mode {
-            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
+        /* DARK MODE STYLES แก้ไขบังคับคลุมทั้งจอ iPad */
+        html.dark-mode, body.dark-mode {
+            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%) !important;
+            background-color: #0b0f19 !important; /* ยืนยันสีพื้นหลังดำสนิท */
             color: #f1f5f9;
+        }
+        body.dark-mode .padlock .body {
+            fill: #1f2937; 
+            stroke: #60a5fa; 
+        }
+        body.dark-mode .padlock .shackle,
+        body.dark-mode .padlock .keyhole {
+            stroke: #60a5fa; 
+        }
+        body.dark-mode .is-unlocked .padlock .body,
+        body.dark-mode .is-unlocked .padlock .shackle,
+        body.dark-mode .is-unlocked .padlock .keyhole {
+            stroke: #4ade80 !important; 
         }
         body.dark-mode .liquid-glass {
             background: rgba(17, 24, 39, 0.65);
@@ -248,14 +253,11 @@
     <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ -->
     <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 transition-all duration-500">
         <div class="login-card-theme w-full max-w-[480px] p-6 md:p-8 rounded-[2rem] shadow-2xl text-center flex flex-col items-center my-auto">
-            
             <div class="w-28 h-28 mb-2 flex items-center justify-center shrink-0">
                 <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
             </div>
-
             <h2 class="login-title text-2xl font-black mb-1 leading-tight">เข้าสู่ระบบกรรมการ</h2>
             <p class="login-subtitle text-xs font-semibold mb-5">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
-
             <form id="login-form" class="w-full space-y-3 text-left">
                 <div>
                     <label class="login-label block text-xs font-bold mb-1">หมายเลขเครื่องกรรมการ</label>
@@ -267,23 +269,19 @@
                         <option value="iPad 05">iPad 05</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="login-label block text-xs font-bold mb-1">ชื่อ-นามสกุล กรรมการ</label>
                     <select id="login-judge-select" required class="login-input w-full h-11 rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-inner">
                         <option value="">กำลังโหลดชื่อกรรมการ...</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="login-label block text-xs font-bold mb-1">รหัสผ่าน</label>
                     <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-11 rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-inner">
                 </div>
-
                 <div id="login-error-msg" class="text-xs font-bold text-rose-500 text-center hidden py-0.5">
                     ⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
                 </div>
-
                 <button type="submit" class="login-btn glass-button w-full h-12 font-bold text-base rounded-xl shadow-lg transition-all active:scale-95 mt-2 flex items-center justify-center gap-2">
                     <span>เข้าสู่ระบบประเมิน</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -292,11 +290,10 @@
         </div>
     </div>
 
-    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (แก้แอนิเมชันแม่กุญแจ) -->
-    <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-500">
-        <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transition-transform duration-500 transform translate-y-0 px-8">
+    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (เพิ่มแอนิเมชันเลื่อนขึ้นและจางหาย) -->
+    <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center">
+        <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transform translate-y-0 opacity-100 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
-                <!-- SVG แม่กุญแจใหม่ -->
                 <svg class="padlock" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
                     <path class="shackle" d="M 18 50 V 24 A 12 12 0 0 1 42 24 V 36" />
                     <rect class="body" x="6" y="36" width="48" height="30" rx="6" />
@@ -366,20 +363,18 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                 แบบประเมินให้คะแนน
             </h3>
-
             <button id="submit-btn" class="glass-button bg-blue-900 hover:bg-blue-800 text-white font-bold text-lg px-7 py-3 rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 บันทึกคะแนนและส่ง
             </button>
         </div>
-
         <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 pb-28 content-start">
         </div>
     </main>
 
     <!-- Script -->
     <script>
-        // 🔒 บังคับล็อก Touch Event ไม่ให้เลื่อนหน้าจอ ยกเว้นบริเวณการ์ดคะแนน
+        // 🔒 บังคับล็อก Touch Event
         document.addEventListener('touchmove', function(e) {
             if (!e.target.closest('#criteria-container')) {
                 e.preventDefault();
@@ -401,18 +396,9 @@
         const PASSWORD_SHEET_NAME = 'รหัสคณะกรรมการ';
 
         const JUDGE_CONFIGS = {
-            'iPad 01': { 
-                sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8',
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec'
-            },
-            'iPad 02': { 
-                sheetId: '1ChJNDGBQ3E1yMImjU30RjVjShPtiXX3psMb2NQhc14Q',
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbwAbpOVoYI6hrhDE0ADXOW06EKrXhHc2DPysWaugQazSy_3NohiTRoX2H5FI4msiZG2/exec'
-            },
-            'iPad 03': { 
-                sheetId: '1qX5Re7Prh7R_Gx4lyflCKPpJ6jTadveKWhxCmDBXz_Q',
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbwCTpDygraH7getS4rmxbdlFL7YNcSRln-XMWeH_wqGBn9fsXkcQTbDR831kJfE9SY9Xg/exec'
-            },
+            'iPad 01': { sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8', scriptUrl: 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec' },
+            'iPad 02': { sheetId: '1ChJNDGBQ3E1yMImjU30RjVjShPtiXX3psMb2NQhc14Q', scriptUrl: 'https://script.google.com/macros/s/AKfycbwAbpOVoYI6hrhDE0ADXOW06EKrXhHc2DPysWaugQazSy_3NohiTRoX2H5FI4msiZG2/exec' },
+            'iPad 03': { sheetId: '1qX5Re7Prh7R_Gx4lyflCKPpJ6jTadveKWhxCmDBXz_Q', scriptUrl: 'https://script.google.com/macros/s/AKfycbwCTpDygraH7getS4rmxbdlFL7YNcSRln-XMWeH_wqGBn9fsXkcQTbDR831kJfE9SY9Xg/exec' },
             'iPad 04': { sheetId: 'วาง_SHEET_ID_กรรมการ_4_ตรงนี้', scriptUrl: '' },
             'iPad 05': { sheetId: 'วาง_SHEET_ID_กรรมการ_5_ตรงนี้', scriptUrl: '' }
         };
@@ -436,7 +422,6 @@
                 const data = JSON.parse(jsonString);
 
                 fetchedJudgesList = [];
-
                 if (data.table && data.table.rows) {
                     data.table.rows.forEach(row => {
                         if (row.c && row.c[0] && row.c[0].v) {
@@ -452,38 +437,27 @@
                     });
                 }
                 renderJudgeSelectOptions();
-            } catch (err) {
-                console.error("เกิดข้อผิดพลาดในการดึงข้อมูลรหัสผ่าน:", err);
-            }
+            } catch (err) {}
         }
 
         function renderJudgeSelectOptions() {
             const loginJudgeSelect = document.getElementById('login-judge-select');
             const selectedDev = document.getElementById('login-device-select').value;
-
             if (fetchedJudgesList.length === 0) {
                 loginJudgeSelect.innerHTML = `<option value="">ไม่พบรายชื่อกรรมการในชีท</option>`;
                 return;
             }
-
             loginJudgeSelect.innerHTML = '';
             let matchedJudgeName = '';
-
             fetchedJudgesList.forEach(item => {
                 const isMatchDev = item.device.toLowerCase().replace(/\s+/g, '') === selectedDev.toLowerCase().replace(/\s+/g, '');
                 if (isMatchDev && !matchedJudgeName) matchedJudgeName = item.name;
-
                 const opt = document.createElement('option');
                 opt.value = item.name;
                 opt.textContent = item.name;
-                opt.dataset.device = item.device;
-                opt.dataset.password = item.password;
                 loginJudgeSelect.appendChild(opt);
             });
-
-            if (matchedJudgeName) {
-                loginJudgeSelect.value = matchedJudgeName;
-            }
+            if (matchedJudgeName) loginJudgeSelect.value = matchedJudgeName;
         }
 
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
@@ -492,11 +466,14 @@
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
         function applyTheme(isDark) {
+            // บังคับเปลี่ยน class ที่ HTML ด้วยเพื่อแก้บัคพื้นหลังไม่สุดขอบ
             if (isDark) {
+                document.documentElement.classList.add('dark-mode');
                 document.body.classList.add('dark-mode');
                 themeIconMoon.classList.add('hidden');
                 themeIconSun.classList.remove('hidden');
             } else {
+                document.documentElement.classList.remove('dark-mode');
                 document.body.classList.remove('dark-mode');
                 themeIconMoon.classList.remove('hidden');
                 themeIconSun.classList.add('hidden');
@@ -515,11 +492,6 @@
             applyTheme(newIsDark);
             localStorage.setItem('ipad_theme', newIsDark ? 'dark' : 'light');
         });
-
-        systemPrefersDark.addEventListener('change', (e) => {
-            if (!localStorage.getItem('ipad_theme')) applyTheme(e.matches);
-        });
-
         initTheme();
 
         const loginOverlay = document.getElementById('login-overlay');
@@ -543,24 +515,18 @@
 
             loginErrorMsg.classList.add('hidden');
             const targetJudge = fetchedJudgesList.find(j => j.name === selectedJudgeName);
-
             if (targetJudge && targetJudge.password && inputPwd !== targetJudge.password) {
                 loginErrorMsg.textContent = '⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
                 loginErrorMsg.classList.remove('hidden');
                 return;
             }
 
-            if (!devId || !selectedJudgeName) return;
-
             localStorage.setItem('logged_judge_device', devId);
             localStorage.setItem('logged_judge_name', selectedJudgeName);
-
             applyLoggedInUser(devId, selectedJudgeName);
 
             loginOverlay.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                loginOverlay.classList.add('hidden');
-            }, 500);
+            setTimeout(() => { loginOverlay.classList.add('hidden'); }, 500);
         });
 
         function applyLoggedInUser(devId, jName) {
@@ -573,7 +539,6 @@
         function checkExistingLogin() {
             const savedDev = localStorage.getItem('logged_judge_device');
             const savedName = localStorage.getItem('logged_judge_name');
-
             if (savedDev && savedName && JUDGE_CONFIGS[savedDev]) {
                 loginDeviceSelect.value = savedDev;
                 applyLoggedInUser(savedDev, savedName);
@@ -592,6 +557,7 @@
         });
 
         const overlay = document.getElementById('waiting-overlay');
+        const waitingModal = document.getElementById('waiting-modal');
         const waitingTitle = document.getElementById('waiting-title');
         const waitingText = document.getElementById('waiting-text');
         const submitBtn = document.getElementById('submit-btn');
@@ -604,7 +570,6 @@
         const displayNicknameWrapper = document.getElementById('display-nickname-wrapper');
         const contestantDetailsWrapper = document.getElementById('contestant-details-wrapper');
         const criteriaContainer = document.getElementById('criteria-container');
-
         const connDot = document.getElementById('conn-dot');
         const connText = document.getElementById('conn-text');
         const displayJudgeName = document.getElementById('display-judge-name');
@@ -622,17 +587,12 @@
         async function fetchSingleRange(sheetName, range) {
             try {
                 const config = getCurrentConfig();
-                const currentSheetId = config.sheetId;
-
-                if (!currentSheetId || currentSheetId.includes('วาง_SHEET_ID')) return [];
-
-                const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
-                const response = await fetch(gvizUrl);
+                if (!config.sheetId || config.sheetId.includes('วาง_SHEET_ID')) return [];
+                const url = `https://docs.google.com/spreadsheets/d/${config.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
+                const response = await fetch(url);
                 const text = await response.text();
-                
                 const jsonString = text.substring(47, text.length - 2);
                 const data = JSON.parse(jsonString);
-                
                 let results = [];
                 if (data.table && data.table.rows && data.table.rows.length > 0) {
                     const cells = data.table.rows[0].c;
@@ -644,25 +604,18 @@
                     });
                 }
                 return results;
-            } catch (err) {
-                console.error(`Error fetching range ${sheetName}!${range}:`, err);
-                return [];
-            }
+            } catch (err) { return []; }
         }
 
         async function loadCriteriaForRound(roundName) {
             let matchedKey = Object.keys(ROUND_CONFIGS).find(key => roundName.includes(key)) || 'รอบที่ 1';
             const config = ROUND_CONFIGS[matchedKey];
-
             let allCriteria = [];
             for (const range of config.ranges) {
                 const rangeItems = await fetchSingleRange(config.sheet, range);
                 allCriteria = allCriteria.concat(rangeItems);
             }
-
-            if (allCriteria.length > 0) {
-                renderCriteria(allCriteria);
-            }
+            if (allCriteria.length > 0) renderCriteria(allCriteria);
         }
 
         function renderCriteria(criteriaList) {
@@ -670,7 +623,6 @@
             criteriaList.forEach((criterionName) => {
                 const matchScore = criterionName.match(/\((\d+)\s*คะแนน\)/) || criterionName.match(/\((\d+)\)/);
                 const maxScore = matchScore ? parseFloat(matchScore[1]) : 10;
-
                 const cardHTML = `
                     <div class="criterion-card bg-white/70 border border-white p-4 rounded-2xl shadow-sm flex justify-between items-center hover:shadow-md transition-shadow gap-3">
                         <div class="flex-1 flex flex-col justify-center">
@@ -697,7 +649,6 @@
                     if (val > maxScore) this.value = maxScore;
                     else if (val < 0) this.value = 0;
                 });
-
                 input.addEventListener('blur', function() {
                     if (this.value === '') return;
                     let val = parseFloat(this.value);
@@ -712,8 +663,11 @@
             const currentDev = deviceIdText.textContent.trim() || 'iPad 01';
             const config = JUDGE_CONFIGS[currentDev] || JUDGE_CONFIGS['iPad 01'];
 
+            // รีเซ็ตตำแหน่งกล่องสี่เหลี่ยมและความทึบ
+            waitingModal.style.transform = 'translateY(0)';
+            waitingModal.style.opacity = '1';
+            overlay.classList.remove('opacity-0', 'hidden');
             overlay.style.display = 'flex';
-            overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
             
             iconContainer.classList.remove('is-unlocked', 'scale-110');
             waitingTitle.classList.remove('text-green-600');
@@ -729,7 +683,6 @@
             });
 
             const currentRound = displayRoundNode.textContent.trim();
-
             const payload = {
                 judgeId: currentDev,
                 judgeName: displayJudgeName ? displayJudgeName.textContent.trim() : '',
@@ -748,12 +701,9 @@
                         body: JSON.stringify(payload)
                     });
                 }
-                
                 waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
                 waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
-
             } catch (err) {
-                console.error("เกิดข้อผิดพลาดในการบันทึกคะแนน:", err);
                 waitingTitle.textContent = "บันทึกเรียบร้อย";
                 waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
             }
@@ -768,7 +718,6 @@
 
             if (command.action === 'START_VOTING') {
                 currentContestantCode = command.contestantCode || '';
-
                 const nameParts = (command.contestantName || '').split(' - ');
                 const numberStr = nameParts[0] || '-'; 
                 let nameStr = nameParts[1] || ''; 
@@ -785,10 +734,9 @@
                 const newRoundText = command.roundName || 'รอบที่ 1';
                 const isRoundChanged = currentRoundText !== newRoundText;
 
-                // เปลี่ยนคลาสเพื่อเล่นแอนิเมชันแม่กุญแจแบบเชื่อมต่อสมบูรณ์
+                // 1. ทำให้กุญแจกลายเป็นสีเขียว (ปลดล็อก)
                 iconContainer.classList.add('is-unlocked', 'scale-110');
                 waitingTitle.classList.add('text-green-600');
-                
                 waitingTitle.textContent = "ปลดล็อกแล้ว";
                 waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
                 
@@ -819,29 +767,50 @@
 
                     loadCriteriaForRound(newRoundText).catch(e => console.error(e));
 
-                } catch(e) {
-                    console.error("Error updating UI details:", e);
-                }
+                } catch(e) {}
 
+                // 2. แอนิเมชันเปิดจอ: รอโชว์กุญแจเขียวสักพัก แล้วให้กล่องเลื่อนขึ้นพ้นจอพร้อมฉากหลังหายเบลอ
                 setTimeout(() => {
-                    overlay.classList.add('opacity-0', 'pointer-events-none');
                     
+                    // ให้กล่องสี่เหลี่ยมกลางจอเลื่อนขึ้นและจางหายไป
+                    waitingModal.style.transform = 'translateY(-120vh)';
+                    waitingModal.style.opacity = '0';
+                    
+                    // ให้ overlay คลายความเบลอและจางหาย
+                    overlay.classList.add('opacity-0');
+                    overlay.style.backdropFilter = 'blur(0px)';
+                    overlay.style.webkitBackdropFilter = 'blur(0px)';
+                    
+                    // รอจนแอนิเมชันจบแล้วค่อยซ่อน element จริงๆ
                     setTimeout(() => {
                         overlay.style.display = 'none';
                         overlay.classList.add('hidden');
-
+                        
+                        // รีเซ็ตค่าสไตล์กลับมาเผื่อหน้าจอโดนล็อกอีกรอบ
+                        waitingModal.style.transform = 'translateY(0)';
+                        waitingModal.style.opacity = '1';
+                        overlay.classList.remove('opacity-0');
+                        overlay.style.backdropFilter = '';
+                        overlay.style.webkitBackdropFilter = '';
+                        
                         iconContainer.classList.remove('is-unlocked', 'scale-110');
                         waitingTitle.classList.remove('text-green-600');
                         
                         waitingTitle.textContent = "กรุณารอสักครู่";
                         waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
-                    }, 400);
+                    }, 800); // 0.8 วินาทีคือระยะเวลาของแอนิเมชันเลื่อนขึ้น
                     
-                }, 1000); 
+                }, 1200); // 1.2 วินาทีคือเวลาที่โชว์กุญแจเขียวให้กรรมการเห็น
             } 
             else if (command.action === 'LOCK_SCREEN') {
+                // รีเซ็ตค่าก่อนโชว์ฉากล็อก
+                waitingModal.style.transform = 'translateY(0)';
+                waitingModal.style.opacity = '1';
+                overlay.classList.remove('opacity-0', 'hidden');
+                overlay.style.backdropFilter = '';
+                overlay.style.webkitBackdropFilter = '';
+                
                 overlay.style.display = 'flex';
-                overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
                 
                 iconContainer.classList.remove('is-unlocked', 'scale-110');
                 waitingTitle.classList.remove('text-green-600');
@@ -853,16 +822,13 @@
 
         const CMD_TOPIC = 'vru_pageant_2025/admin_cmd';
         const STATUS_TOPIC = 'vru_pageant_2025/device_status';
-
         const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
         mqttClient.on('connect', () => {
             connDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
             connText.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
             connText.textContent = "เชื่อมต่อแล้ว";
-
             mqttClient.subscribe(CMD_TOPIC, { qos: 1 });
-
             sendHeartbeat();
             setInterval(sendHeartbeat, 3000);
         });
@@ -884,9 +850,7 @@
                 try {
                     const command = JSON.parse(message.toString());
                     processAdminCommand(command);
-                } catch (err) {
-                    console.error('JSON Error:', err);
-                }
+                } catch (err) {}
             }
         });
 
