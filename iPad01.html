@@ -68,11 +68,11 @@
         /* 🎨 สไตล์การ์ดล็อกอิน (LOGIN MODAL THEME) */
         /* ----------------------------------------------------------------- */
         .login-card-theme {
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1.5px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.2);
         }
         .login-card-theme .login-title { color: #1e3a8a; }
         .login-card-theme .login-subtitle { color: #64748b; }
@@ -139,9 +139,9 @@
         }
 
         body.dark-mode .login-card-theme {
-            background: rgba(15, 23, 42, 0.92);
+            background: rgba(15, 23, 42, 0.94);
             border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
         }
         body.dark-mode .login-card-theme .login-title { color: #93c5fd; }
         body.dark-mode .login-card-theme .login-subtitle { color: #94a3b8; }
@@ -218,22 +218,22 @@
 </head>
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden select-none">
 
-    <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 transition-all duration-500">
-        <div class="login-card-theme w-full max-w-[580px] p-10 md:p-12 rounded-[2.5rem] shadow-2xl text-center flex flex-col items-center">
+    <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ (ปรับกระชับไม่ล้นขอบ iPad) -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 md:p-6 transition-all duration-500 overflow-y-auto">
+        <div class="login-card-theme w-full max-w-[500px] max-h-[92vh] overflow-y-auto p-6 md:p-8 rounded-[2rem] shadow-2xl text-center flex flex-col items-center my-auto">
             
-            <!-- โลโก้งาน -->
-            <div class="w-48 h-48 mb-4 flex items-center justify-center shrink-0">
-                <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-xl" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
+            <!-- โลโก้งาน (ปรับขนาดเป็น w-32 h-32 กำลังดี ไม่กินพื้นที่แนวตั้ง) -->
+            <div class="w-32 h-32 mb-2 flex items-center justify-center shrink-0">
+                <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
             </div>
 
-            <h2 class="login-title text-3xl font-black mb-1.5 leading-tight">เข้าสู่ระบบกรรมการ</h2>
-            <p class="login-subtitle text-sm font-semibold mb-8">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+            <h2 class="login-title text-2xl md:text-3xl font-black mb-1 leading-tight">เข้าสู่ระบบกรรมการ</h2>
+            <p class="login-subtitle text-xs md:text-sm font-semibold mb-5">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
 
-            <form id="login-form" class="w-full space-y-5 text-left">
+            <form id="login-form" class="w-full space-y-3.5 text-left">
                 <div>
-                    <label class="login-label block text-sm font-bold mb-2">หมายเลขเครื่องกรรมการ</label>
-                    <select id="login-device-select" class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1.5">หมายเลขเครื่องกรรมการ</label>
+                    <select id="login-device-select" class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
                         <option value="iPad 01">iPad 01</option>
                         <option value="iPad 02">iPad 02</option>
                         <option value="iPad 03">iPad 03</option>
@@ -243,24 +243,24 @@
                 </div>
 
                 <div>
-                    <label class="login-label block text-sm font-bold mb-2">ชื่อ-นามสกุล กรรมการ</label>
-                    <select id="login-judge-select" required class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1.5">ชื่อ-นามสกุล กรรมการ</label>
+                    <select id="login-judge-select" required class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
                         <option value="">กำลังโหลดชื่อกรรมการ...</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="login-label block text-sm font-bold mb-2">รหัสผ่าน</label>
-                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1.5">รหัสผ่าน</label>
+                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
                 </div>
 
-                <div id="login-error-msg" class="text-sm font-bold text-rose-500 text-center hidden py-1">
+                <div id="login-error-msg" class="text-xs font-bold text-rose-500 text-center hidden py-0.5">
                     ⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
                 </div>
 
-                <button type="submit" class="login-btn glass-button w-full h-14 font-bold text-xl rounded-2xl shadow-xl transition-all active:scale-95 mt-4 flex items-center justify-center gap-3">
+                <button type="submit" class="login-btn glass-button w-full h-12 font-bold text-lg rounded-xl shadow-lg transition-all active:scale-95 mt-2 flex items-center justify-center gap-2">
                     <span>เข้าสู่ระบบประเมิน</span>
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
             </form>
         </div>
@@ -274,7 +274,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
                 <svg id="icon-unlock" class="w-10 h-10 absolute opacity-0 transition-opacity duration-300 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                 </svg>
             </div>
             <div class="h-[80px] flex flex-col items-center justify-start">
@@ -337,7 +337,7 @@
     <main class="relative z-40 liquid-glass rounded-3xl p-6 flex-1 flex flex-col min-h-0">
         <div class="flex justify-between items-center mb-4 shrink-0 gap-4">
             <h3 class="text-lg font-bold text-blue-900 flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                 แบบประเมินให้คะแนน
             </h3>
 
@@ -353,9 +353,6 @@
 
     <!-- Script -->
     <script>
-        // URL สำหรับบันทึกคะแนน Google Apps Script สำรอง
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec';
-
         // -----------------------------------------------------------------
         // Google Sheet รหัสคณะกรรมการ
         // -----------------------------------------------------------------
@@ -372,15 +369,22 @@
                 sheetId: '1ChJNDGBQ3E1yMImjU30RjVjShPtiXX3psMb2NQhc14Q',
                 scriptUrl: 'https://script.google.com/macros/s/AKfycbx9GyYcrQrsDmvr1h9Y51cjRHthwFpJQlP4XliF-PxtBulp5Ur6NJ2zPUsHYCFndXCC/exec'
             },
-            'iPad 03': { sheetId: 'วาง_SHEET_ID_กรรมการ_3_ตรงนี้', scriptUrl: '' },
+            'iPad 03': { 
+                sheetId: '1qX5Re7Prh7R_Gx4lyflCKPpJ6jTadveKWhxCmDBXz_Q',
+                scriptUrl: 'https://script.google.com/macros/s/AKfycb8EFsViX-AuHIUTBzgyFt0UgYzNwtxNu0AknCD54WXlAbOFtPe066KbFoCLJiOF3WHpg/exec'
+            },
             'iPad 04': { sheetId: 'วาง_SHEET_ID_กรรมการ_4_ตรงนี้', scriptUrl: '' },
             'iPad 05': { sheetId: 'วาง_SHEET_ID_กรรมการ_5_ตรงนี้', scriptUrl: '' }
         };
 
         let DEVICE_ID = 'iPad 01';
-        let CURRENT_SHEET_ID = JUDGE_CONFIGS['iPad 01'].sheetId;
-        let CURRENT_SCRIPT_URL = JUDGE_CONFIGS['iPad 01'].scriptUrl || DEFAULT_SCRIPT_URL;
         
+        // ฟังก์ชันอ่านค่า Config ของเครื่องปัจจุบันแบบไดนามิก
+        function getCurrentConfig() {
+            const currentDev = DEVICE_ID || localStorage.getItem('logged_judge_device') || 'iPad 01';
+            return JUDGE_CONFIGS[currentDev] || JUDGE_CONFIGS['iPad 01'];
+        }
+
         // ข้อมูลกรรมการที่ดึงมาจาก Google Sheet
         let fetchedJudgesList = []; 
 
@@ -517,8 +521,6 @@
             if (!devId || !selectedJudgeName) return;
 
             DEVICE_ID = devId;
-            CURRENT_SHEET_ID = JUDGE_CONFIGS[devId] ? JUDGE_CONFIGS[devId].sheetId : '';
-            CURRENT_SCRIPT_URL = (JUDGE_CONFIGS[devId] && JUDGE_CONFIGS[devId].scriptUrl) ? JUDGE_CONFIGS[devId].scriptUrl : DEFAULT_SCRIPT_URL;
 
             localStorage.setItem('logged_judge_device', devId);
             localStorage.setItem('logged_judge_name', selectedJudgeName);
@@ -532,6 +534,7 @@
         });
 
         function applyLoggedInUser(devId, jName) {
+            DEVICE_ID = devId;
             deviceIdText.textContent = devId;
             displayJudgeName.textContent = jName;
             
@@ -545,8 +548,6 @@
 
             if (savedDev && savedName && JUDGE_CONFIGS[savedDev]) {
                 DEVICE_ID = savedDev;
-                CURRENT_SHEET_ID = JUDGE_CONFIGS[savedDev].sheetId;
-                CURRENT_SCRIPT_URL = JUDGE_CONFIGS[savedDev].scriptUrl || DEFAULT_SCRIPT_URL;
                 loginDeviceSelect.value = savedDev;
 
                 applyLoggedInUser(savedDev, savedName);
@@ -609,12 +610,15 @@
 
         async function fetchSingleRange(sheetName, range) {
             try {
-                if (!CURRENT_SHEET_ID || CURRENT_SHEET_ID.includes('วาง_SHEET_ID')) {
+                const config = getCurrentConfig();
+                const currentSheetId = config.sheetId;
+
+                if (!currentSheetId || currentSheetId.includes('วาง_SHEET_ID')) {
                     console.warn('ยังไม่ได้ระบุ Sheet ID ของกรรมการเครื่องนี้');
                     return [];
                 }
 
-                const gvizUrl = `https://docs.google.com/spreadsheets/d/${CURRENT_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
                 const response = await fetch(gvizUrl);
                 const text = await response.text();
                 
@@ -722,18 +726,19 @@
             });
 
             const currentRound = displayRoundNode.textContent.trim();
+            const config = getCurrentConfig();
 
             const payload = {
                 judgeId: DEVICE_ID,
                 judgeName: displayJudgeName ? displayJudgeName.textContent.trim() : '',
-                sheetId: CURRENT_SHEET_ID,
+                sheetId: config.sheetId,
                 roundName: currentRound,
                 contestantCode: currentContestantCode,
                 scores: scoresList
             };
 
             try {
-                const targetScriptUrl = CURRENT_SCRIPT_URL || DEFAULT_SCRIPT_URL;
+                const targetScriptUrl = config.scriptUrl;
                 if (targetScriptUrl && targetScriptUrl.startsWith('http')) {
                     await fetch(targetScriptUrl, {
                         method: 'POST',
