@@ -21,7 +21,7 @@
 
         /* 🔒 ล็อกหน้าจอถาวร ป้องกันการเลื่อน/เด้ง/ซูม บน iPad ทุกกรณี */
         * {
-            touch-action: manipulation; /* ป้องกัน Double tap zoom */
+            touch-action: manipulation;
         }
         
         html, body {
@@ -32,7 +32,7 @@
             bottom: 0;
             width: 100vw;
             height: 100vh;
-            touch-action: none !important; /* ล็อกการขยับ */
+            touch-action: none !important;
             -webkit-user-select: none;
             user-select: none;
             overscroll-behavior: none;
@@ -45,7 +45,6 @@
             transition: background 0.4s ease, color 0.4s ease;
         }
 
-        /* อนุญาตให้พิมพ์ช่องกรอกได้ */
         input, select {
             -webkit-user-select: auto !important;
             user-select: auto !important;
@@ -53,6 +52,58 @@
             touch-action: auto !important;
         }
 
+        /* --- Custom SVG Padlock Animation --- */
+        .padlock {
+            width: 38px;
+            height: 44px;
+            overflow: visible;
+        }
+
+        .padlock .body {
+            fill: #ffffff; /* พื้นหลังสีขาวสำหรับบังขาซ้ายที่ซ่อนอยู่ */
+            stroke: #2563eb; 
+            stroke-width: 6;
+            stroke-linejoin: round;
+            transition: stroke 0.4s ease, fill 0.4s ease;
+        }
+
+        .padlock .shackle,
+        .padlock .keyhole {
+            fill: none;
+            stroke: #2563eb; 
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* เมื่อปลดล็อก -> เลื่อนชิ้นส่วนโค้งขึ้น และค่อยๆ เปลี่ยนเป็นสีเขียว */
+        .is-unlocked .padlock .body,
+        .is-unlocked .padlock .shackle,
+        .is-unlocked .padlock .keyhole {
+            stroke: #16a34a !important; 
+        }
+
+        .is-unlocked .padlock .shackle {
+            transform: translateY(-12px); 
+        }
+
+        /* รองรับ Dark Mode ของไอคอนแม่กุญแจ */
+        body.dark-mode .padlock .body {
+            fill: #1f2937; /* สีพื้นหลังของวงกลมในโหมดมืด */
+            stroke: #60a5fa; 
+        }
+        body.dark-mode .padlock .shackle,
+        body.dark-mode .padlock .keyhole {
+            stroke: #60a5fa; 
+        }
+        body.dark-mode .is-unlocked .padlock .body,
+        body.dark-mode .is-unlocked .padlock .shackle,
+        body.dark-mode .is-unlocked .padlock .keyhole {
+            stroke: #4ade80 !important; 
+        }
+
+        /* Glassmorphism Styles */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(16px);
@@ -125,19 +176,16 @@
             background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
             color: #f1f5f9;
         }
-
         body.dark-mode .liquid-glass {
             background: rgba(17, 24, 39, 0.65);
             border-color: rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
-
         body.dark-mode .modal-glass {
             background: rgba(17, 24, 39, 0.92);
             border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.7);
         }
-
         body.dark-mode .login-card-theme {
             background: rgba(15, 23, 42, 0.94);
             border-color: rgba(255, 255, 255, 0.12);
@@ -157,50 +205,37 @@
             color: #ffffff;
         }
         body.dark-mode .login-card-theme .login-btn:hover { background: #1d4ed8; }
-
         body.dark-mode .header-bg-box {
             background: rgba(31, 41, 55, 0.7) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
             color: #f3f4f6 !important;
         }
-
         body.dark-mode .criterion-card {
             background: rgba(31, 41, 55, 0.5) !important;
             border-color: rgba(255, 255, 255, 0.08) !important;
         }
-
         body.dark-mode .criterion-name {
             color: #f3f4f6 !important;
         }
-
         body.dark-mode .score-input {
             background: rgba(17, 24, 39, 0.9) !important;
             border-color: #3b82f6 !important;
             color: #60a5fa !important;
         }
-
-        body.dark-mode h1, 
-        body.dark-mode h3, 
-        body.dark-mode #device-id-text, 
-        body.dark-mode #display-judge-name {
+        body.dark-mode h1, body.dark-mode h3, body.dark-mode #device-id-text, body.dark-mode #display-judge-name {
             color: #93c5fd !important;
         }
-
         body.dark-mode h2 { color: #cbd5e1 !important; }
         body.dark-mode #waiting-title { color: #93c5fd !important; }
         body.dark-mode #waiting-text { color: #9ca3af !important; }
-
         body.dark-mode #icon-container {
             background: #1f2937 !important;
-            color: #60a5fa !important;
         }
-
         body.dark-mode #display-nickname {
             background: rgba(31, 41, 55, 0.9) !important;
             border-color: #3b82f6 !important;
             color: #93c5fd !important;
         }
-
         body.dark-mode #display-round {
             background: rgba(30, 58, 138, 0.5) !important;
             color: #bfdbfe !important;
@@ -257,15 +292,15 @@
         </div>
     </div>
 
-    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน -->
+    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (แก้แอนิเมชันแม่กุญแจ) -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-500">
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transition-transform duration-500 transform translate-y-0 px-8">
-            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
-                <svg id="icon-lock" class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-                <svg id="icon-unlock" class="w-10 h-10 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+            <div id="icon-container" class="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
+                <!-- SVG แม่กุญแจใหม่ -->
+                <svg class="padlock" viewBox="0 0 60 70" xmlns="http://www.w3.org/2000/svg">
+                    <path class="shackle" d="M 18 50 V 24 A 12 12 0 0 1 42 24 V 36" />
+                    <rect class="body" x="6" y="36" width="48" height="30" rx="6" />
+                    <path class="keyhole" d="M 30 46 V 54" />
                 </svg>
             </div>
             <div class="h-[80px] flex flex-col items-center justify-start">
@@ -338,25 +373,24 @@
             </button>
         </div>
 
-        <!-- 🔧 ลบ overflow ออก ล็อกฟิกซ์ไว้ และเพิ่ม pb-28 เพื่อเว้นที่ว่างด้านล่างป้องกัน Apple Pencil Toolbar บัง -->
         <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 pb-28 content-start">
         </div>
     </main>
 
     <!-- Script -->
     <script>
-        // 🔒 1. ป้องกันการเลื่อนหน้าจอ (Scroll) เด็ดขาด 100%
+        // 🔒 บังคับล็อก Touch Event ไม่ให้เลื่อนหน้าจอ ยกเว้นบริเวณการ์ดคะแนน
         document.addEventListener('touchmove', function(e) {
-            // ป้องกันการ Scroll ทุกกรณี
-            e.preventDefault();
+            if (!e.target.closest('#criteria-container')) {
+                e.preventDefault();
+            }
         }, { passive: false });
 
-        // 🔒 2. ป้องกันการแตะ 2 ครั้งติดกันเพื่อซูม (Double-tap to Zoom)
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function(e) {
             const now = (new Date()).getTime();
             if (now - lastTouchEnd <= 300) {
-                e.preventDefault(); // บล็อกถ้าแตะติดกันเร็วกว่า 300ms
+                e.preventDefault();
             }
             lastTouchEnd = now;
         }, { passive: false });
@@ -452,14 +486,9 @@
             }
         }
 
-        // -----------------------------------------------------------------
-        // 🔧 ระบบจัดการ Theme (ทำงานตามเครื่อง + ปุ่มกด)
-        // -----------------------------------------------------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconMoon = document.getElementById('theme-icon-moon');
         const themeIconSun = document.getElementById('theme-icon-sun');
-        
-        // เช็กธีมระบบของ iOS/iPadOS
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
         function applyTheme(isDark) {
@@ -474,36 +503,24 @@
             }
         }
 
-        // โหลดธีมเมื่อเริ่มต้นเว็บ
         function initTheme() {
             const savedTheme = localStorage.getItem('ipad_theme');
-            if (savedTheme === 'dark') {
-                applyTheme(true);
-            } else if (savedTheme === 'light') {
-                applyTheme(false);
-            } else {
-                // ถ้าไม่เคยกดปุ่ม ให้ใช้ตามระบบเครื่อง
-                applyTheme(systemPrefersDark.matches);
-            }
+            if (savedTheme === 'dark') applyTheme(true);
+            else if (savedTheme === 'light') applyTheme(false);
+            else applyTheme(systemPrefersDark.matches);
         }
 
-        // เมื่อผู้ใช้กดปุ่มสลับธีมเอง (Override)
         themeToggleBtn.addEventListener('click', () => {
-            const isCurrentlyDark = document.body.classList.contains('dark-mode');
-            const newIsDark = !isCurrentlyDark;
+            const newIsDark = !document.body.classList.contains('dark-mode');
             applyTheme(newIsDark);
             localStorage.setItem('ipad_theme', newIsDark ? 'dark' : 'light');
         });
 
-        // ดักจับการเปลี่ยนโหมดสว่าง/มืดจากตัวเครื่องอัตโนมัติ
         systemPrefersDark.addEventListener('change', (e) => {
-            // จะเปลี่ยนตามเครื่องอัตโนมัติก็ต่อเมื่อ ผู้ใช้ยังไม่เคยกดปุ่มบังคับธีม
-            if (!localStorage.getItem('ipad_theme')) {
-                applyTheme(e.matches);
-            }
+            if (!localStorage.getItem('ipad_theme')) applyTheme(e.matches);
         });
 
-        initTheme(); // เรียกใช้งานเมื่อโหลดเว็บ
+        initTheme();
 
         const loginOverlay = document.getElementById('login-overlay');
         const loginForm = document.getElementById('login-form');
@@ -549,7 +566,6 @@
         function applyLoggedInUser(devId, jName) {
             deviceIdText.textContent = devId;
             displayJudgeName.textContent = jName;
-            
             sendHeartbeat();
             loadCriteriaForRound('รอบที่ 1');
         }
@@ -576,12 +592,9 @@
         });
 
         const overlay = document.getElementById('waiting-overlay');
-        const waitingModal = document.getElementById('waiting-modal');
         const waitingTitle = document.getElementById('waiting-title');
         const waitingText = document.getElementById('waiting-text');
         const submitBtn = document.getElementById('submit-btn');
-        const iconLock = document.getElementById('icon-lock');
-        const iconUnlock = document.getElementById('icon-unlock');
         const iconContainer = document.getElementById('icon-container');
         
         const displayRoundNode = document.getElementById('display-round');
@@ -702,11 +715,7 @@
             overlay.style.display = 'flex';
             overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
             
-            iconLock.classList.remove('hidden');
-            iconUnlock.classList.add('hidden');
-            
-            iconContainer.classList.remove('scale-110', 'text-green-500');
-            iconContainer.classList.add('text-blue-600');
+            iconContainer.classList.remove('is-unlocked', 'scale-110');
             waitingTitle.classList.remove('text-green-600');
             
             waitingTitle.textContent = "กำลังบันทึกคะแนน...";
@@ -776,11 +785,8 @@
                 const newRoundText = command.roundName || 'รอบที่ 1';
                 const isRoundChanged = currentRoundText !== newRoundText;
 
-                iconLock.classList.add('hidden');
-                iconUnlock.classList.remove('hidden');
-                
-                iconContainer.classList.remove('text-blue-600');
-                iconContainer.classList.add('scale-110', 'text-green-500');
+                // เปลี่ยนคลาสเพื่อเล่นแอนิเมชันแม่กุญแจแบบเชื่อมต่อสมบูรณ์
+                iconContainer.classList.add('is-unlocked', 'scale-110');
                 waitingTitle.classList.add('text-green-600');
                 
                 waitingTitle.textContent = "ปลดล็อกแล้ว";
@@ -824,28 +830,20 @@
                         overlay.style.display = 'none';
                         overlay.classList.add('hidden');
 
-                        iconLock.classList.remove('hidden');
-                        iconUnlock.classList.add('hidden');
-                        
-                        iconContainer.classList.remove('scale-110', 'text-green-500');
-                        iconContainer.classList.add('text-blue-600');
+                        iconContainer.classList.remove('is-unlocked', 'scale-110');
                         waitingTitle.classList.remove('text-green-600');
                         
                         waitingTitle.textContent = "กรุณารอสักครู่";
                         waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
                     }, 400);
                     
-                }, 800); 
+                }, 1000); 
             } 
             else if (command.action === 'LOCK_SCREEN') {
                 overlay.style.display = 'flex';
                 overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
                 
-                iconLock.classList.remove('hidden');
-                iconUnlock.classList.add('hidden');
-                
-                iconContainer.classList.remove('scale-110', 'text-green-500');
-                iconContainer.classList.add('text-blue-600');
+                iconContainer.classList.remove('is-unlocked', 'scale-110');
                 waitingTitle.classList.remove('text-green-600');
                 
                 waitingTitle.textContent = "ล็อกหน้าจอแล้ว";
