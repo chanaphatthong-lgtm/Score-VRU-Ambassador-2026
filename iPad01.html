@@ -20,6 +20,10 @@
         }
 
         /* 🔒 ล็อกหน้าจอถาวร ป้องกันการเลื่อน/เด้ง/ซูม บน iPad ทุกกรณี */
+        * {
+            touch-action: manipulation; /* ป้องกัน Double tap zoom */
+        }
+        
         html, body {
             position: fixed;
             top: 0;
@@ -28,7 +32,7 @@
             bottom: 0;
             width: 100vw;
             height: 100vh;
-            touch-action: none !important;
+            touch-action: none !important; /* ล็อกการขยับ */
             -webkit-user-select: none;
             user-select: none;
             overscroll-behavior: none;
@@ -46,6 +50,7 @@
             -webkit-user-select: auto !important;
             user-select: auto !important;
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
+            touch-action: auto !important;
         }
 
         .liquid-glass {
@@ -333,23 +338,34 @@
             </button>
         </div>
 
-        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2 flex-1 touch-pan-y">
+        <!-- 🔧 ลบ overflow ออก ล็อกฟิกซ์ไว้ และเพิ่ม pb-28 เพื่อเว้นที่ว่างด้านล่างป้องกัน Apple Pencil Toolbar บัง -->
+        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 pb-28 content-start">
         </div>
     </main>
 
     <!-- Script -->
     <script>
-        // 🔒 บังคับล็อก Touch Event ไม่ให้เลื่อนหน้าจอ ยกเว้นบริเวณการ์ดคะแนน
+        // 🔒 1. ป้องกันการเลื่อนหน้าจอ (Scroll) เด็ดขาด 100%
         document.addEventListener('touchmove', function(e) {
-            if (!e.target.closest('#criteria-container')) {
-                e.preventDefault();
-            }
+            // ป้องกันการ Scroll ทุกกรณี
+            e.preventDefault();
         }, { passive: false });
+
+        // 🔒 2. ป้องกันการแตะ 2 ครั้งติดกันเพื่อซูม (Double-tap to Zoom)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault(); // บล็อกถ้าแตะติดกันเร็วกว่า 300ms
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+        
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
 
         const PASSWORD_SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
         const PASSWORD_SHEET_NAME = 'รหัสคณะกรรมการ';
 
-        // 📌 กำหนดค่าแยก Sheet ID และ Web App URL อัปเดตล่าสุด
         const JUDGE_CONFIGS = {
             'iPad 01': { 
                 sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8',
@@ -436,31 +452,58 @@
             }
         }
 
+        // -----------------------------------------------------------------
+        // 🔧 ระบบจัดการ Theme (ทำงานตามเครื่อง + ปุ่มกด)
+        // -----------------------------------------------------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconMoon = document.getElementById('theme-icon-moon');
         const themeIconSun = document.getElementById('theme-icon-sun');
+        
+        // เช็กธีมระบบของ iOS/iPadOS
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-        function enableDarkMode(isDark) {
+        function applyTheme(isDark) {
             if (isDark) {
                 document.body.classList.add('dark-mode');
                 themeIconMoon.classList.add('hidden');
                 themeIconSun.classList.remove('hidden');
-                localStorage.setItem('ipad_theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
                 themeIconMoon.classList.remove('hidden');
                 themeIconSun.classList.add('hidden');
-                localStorage.setItem('ipad_theme', 'light');
             }
         }
 
+        // โหลดธีมเมื่อเริ่มต้นเว็บ
+        function initTheme() {
+            const savedTheme = localStorage.getItem('ipad_theme');
+            if (savedTheme === 'dark') {
+                applyTheme(true);
+            } else if (savedTheme === 'light') {
+                applyTheme(false);
+            } else {
+                // ถ้าไม่เคยกดปุ่ม ให้ใช้ตามระบบเครื่อง
+                applyTheme(systemPrefersDark.matches);
+            }
+        }
+
+        // เมื่อผู้ใช้กดปุ่มสลับธีมเอง (Override)
         themeToggleBtn.addEventListener('click', () => {
-            enableDarkMode(!document.body.classList.contains('dark-mode'));
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const newIsDark = !isCurrentlyDark;
+            applyTheme(newIsDark);
+            localStorage.setItem('ipad_theme', newIsDark ? 'dark' : 'light');
         });
 
-        if (localStorage.getItem('ipad_theme') === 'dark') {
-            enableDarkMode(true);
-        }
+        // ดักจับการเปลี่ยนโหมดสว่าง/มืดจากตัวเครื่องอัตโนมัติ
+        systemPrefersDark.addEventListener('change', (e) => {
+            // จะเปลี่ยนตามเครื่องอัตโนมัติก็ต่อเมื่อ ผู้ใช้ยังไม่เคยกดปุ่มบังคับธีม
+            if (!localStorage.getItem('ipad_theme')) {
+                applyTheme(e.matches);
+            }
+        });
+
+        initTheme(); // เรียกใช้งานเมื่อโหลดเว็บ
 
         const loginOverlay = document.getElementById('login-overlay');
         const loginForm = document.getElementById('login-form');
@@ -531,8 +574,6 @@
                 loginOverlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
             }
         });
-
-        document.addEventListener('gesturestart', (e) => e.preventDefault());
 
         const overlay = document.getElementById('waiting-overlay');
         const waitingModal = document.getElementById('waiting-modal');
@@ -654,9 +695,6 @@
             });
         }
 
-        // -----------------------------------------------------------------
-        // บันทึกคะแนนเข้า Google Sheets อ่านหมายเลขเครื่องตรงจากป้ายชื่อ Header
-        // -----------------------------------------------------------------
         submitBtn.addEventListener('click', async () => {
             const currentDev = deviceIdText.textContent.trim() || 'iPad 01';
             const config = JUDGE_CONFIGS[currentDev] || JUDGE_CONFIGS['iPad 01'];
@@ -712,9 +750,6 @@
             }
         });
 
-        // -----------------------------------------------------------------
-        // ประมวลผลคำสั่งจาก Admin
-        // -----------------------------------------------------------------
         const pageLoadTime = Date.now();
         let lastProcessedTime = pageLoadTime;
 
@@ -741,7 +776,6 @@
                 const newRoundText = command.roundName || 'รอบที่ 1';
                 const isRoundChanged = currentRoundText !== newRoundText;
 
-                // 1. เปลี่ยนเป็นแม่กุญแจสีเขียวปลดล็อก
                 iconLock.classList.add('hidden');
                 iconUnlock.classList.remove('hidden');
                 
@@ -754,7 +788,6 @@
                 
                 document.querySelectorAll('.score-input').forEach(input => input.value = '');
 
-                // 2. อัปเดตข้อมูลบน UI ทันที
                 try {
                     if (isRoundChanged) displayRoundNode.textContent = newRoundText;
                     document.getElementById('display-number').textContent = numberStr;
@@ -778,14 +811,12 @@
                         }
                     });
 
-                    // ดึงเกณฑ์คะแนนเบื้องหลัง
                     loadCriteriaForRound(newRoundText).catch(e => console.error(e));
 
                 } catch(e) {
                     console.error("Error updating UI details:", e);
                 }
 
-                // 3. บังคับซ่อนป๊อปอัปทิ้ง 100% หลังผ่านไป 0.8 วินาที
                 setTimeout(() => {
                     overlay.classList.add('opacity-0', 'pointer-events-none');
                     
@@ -793,7 +824,6 @@
                         overlay.style.display = 'none';
                         overlay.classList.add('hidden');
 
-                        // รีเซ็ตสถานะหน้าต่างล็อกคืนค่าเดิมเตรียมใช้รอบถัดไป
                         iconLock.classList.remove('hidden');
                         iconUnlock.classList.add('hidden');
                         
