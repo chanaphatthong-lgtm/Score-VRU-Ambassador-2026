@@ -13,22 +13,26 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
-        /* กำหนดให้ตัวอักษรภาษาอังกฤษ (A-Z, a-z) ใช้ Inter ส่วนตัวเลขและภาษาไทยใช้ Kanit */
         @font-face {
             font-family: 'Inter-Latin';
             src: local('Inter');
             unicode-range: U+0041-005A, U+0061-007A;
         }
 
-        /* ล็อกหน้าจอ ป้องกันการเลื่อน/ซูม/เลือกข้อความ */
+        /* 🔒 ล็อกหน้าจอถาวร ป้องกันการเลื่อน/เด้ง/ซูม บน iPad ทุกกรณี */
         html, body {
-            touch-action: manipulation;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            touch-action: none !important;
             -webkit-user-select: none;
             user-select: none;
             overscroll-behavior: none;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+            overflow: hidden !important;
         }
 
         body {
@@ -37,14 +41,13 @@
             transition: background 0.4s ease, color 0.4s ease;
         }
 
-        /* อนุญาตให้เลือกและพิมพ์ได้เฉพาะช่องกรอก */
+        /* อนุญาตให้พิมพ์ช่องกรอกได้ */
         input, select {
             -webkit-user-select: auto !important;
             user-select: auto !important;
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
         }
 
-        /* สไตล์กระจกใสทั่วไป (Light Mode) */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(16px);
@@ -54,7 +57,6 @@
             transition: all 0.4s ease;
         }
         
-        /* สไตล์กระจกขาวสว่าง (สำหรับกล่อง Modal ทั่วไป) */
         .modal-glass {
             background: rgba(255, 255, 255, 0.88); 
             backdrop-filter: blur(20px);
@@ -64,9 +66,6 @@
             transition: all 0.4s ease;
         }
 
-        /* ----------------------------------------------------------------- */
-        /* 🎨 สไตล์การ์ดล็อกอิน (LOGIN MODAL THEME) */
-        /* ----------------------------------------------------------------- */
         .login-card-theme {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(24px);
@@ -93,14 +92,12 @@
             transform: scale(0.97);
         }
         
-        /* ซ่อนลูกศรในช่องกรอกตัวเลข */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
             margin: 0; 
         }
 
-        /* แอนิเมชันเส้นปาดเอียง 45 องศา */
         .animate-wipe-diagonal {
             animation: wipeDiagonalReveal 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
@@ -118,9 +115,7 @@
             }
         }
 
-        /* ----------------------------------------------------------------- */
-        /* 🌙 DARK MODE STYLES */
-        /* ----------------------------------------------------------------- */
+        /* DARK MODE STYLES */
         body.dark-mode {
             background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
             color: #f1f5f9;
@@ -186,17 +181,9 @@
             color: #93c5fd !important;
         }
 
-        body.dark-mode h2 {
-            color: #cbd5e1 !important;
-        }
-
-        body.dark-mode #waiting-title {
-            color: #93c5fd !important;
-        }
-
-        body.dark-mode #waiting-text {
-            color: #9ca3af !important;
-        }
+        body.dark-mode h2 { color: #cbd5e1 !important; }
+        body.dark-mode #waiting-title { color: #93c5fd !important; }
+        body.dark-mode #waiting-text { color: #9ca3af !important; }
 
         body.dark-mode #icon-container {
             background: #1f2937 !important;
@@ -218,22 +205,21 @@
 </head>
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden select-none">
 
-    <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ (ปรับกระชับไม่ล้นขอบ iPad) -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 md:p-6 transition-all duration-500 overflow-y-auto">
-        <div class="login-card-theme w-full max-w-[500px] max-h-[92vh] overflow-y-auto p-6 md:p-8 rounded-[2rem] shadow-2xl text-center flex flex-col items-center my-auto">
+    <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 transition-all duration-500">
+        <div class="login-card-theme w-full max-w-[480px] p-6 md:p-8 rounded-[2rem] shadow-2xl text-center flex flex-col items-center my-auto">
             
-            <!-- โลโก้งาน -->
-            <div class="w-32 h-32 mb-2 flex items-center justify-center shrink-0">
+            <div class="w-28 h-28 mb-2 flex items-center justify-center shrink-0">
                 <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-md" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
             </div>
 
-            <h2 class="login-title text-2xl md:text-3xl font-black mb-1 leading-tight">เข้าสู่ระบบกรรมการ</h2>
-            <p class="login-subtitle text-xs md:text-sm font-semibold mb-5">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+            <h2 class="login-title text-2xl font-black mb-1 leading-tight">เข้าสู่ระบบกรรมการ</h2>
+            <p class="login-subtitle text-xs font-semibold mb-5">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
 
-            <form id="login-form" class="w-full space-y-3.5 text-left">
+            <form id="login-form" class="w-full space-y-3 text-left">
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">หมายเลขเครื่องกรรมการ</label>
-                    <select id="login-device-select" class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1">หมายเลขเครื่องกรรมการ</label>
+                    <select id="login-device-select" class="login-input w-full h-11 rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-inner">
                         <option value="iPad 01">iPad 01</option>
                         <option value="iPad 02">iPad 02</option>
                         <option value="iPad 03">iPad 03</option>
@@ -243,22 +229,22 @@
                 </div>
 
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">ชื่อ-นามสกุล กรรมการ</label>
-                    <select id="login-judge-select" required class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1">ชื่อ-นามสกุล กรรมการ</label>
+                    <select id="login-judge-select" required class="login-input w-full h-11 rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-inner">
                         <option value="">กำลังโหลดชื่อกรรมการ...</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">รหัสผ่าน</label>
-                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-12 rounded-xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-xs font-bold mb-1">รหัสผ่าน</label>
+                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-11 rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-inner">
                 </div>
 
                 <div id="login-error-msg" class="text-xs font-bold text-rose-500 text-center hidden py-0.5">
                     ⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
                 </div>
 
-                <button type="submit" class="login-btn glass-button w-full h-12 font-bold text-lg rounded-xl shadow-lg transition-all active:scale-95 mt-2 flex items-center justify-center gap-2">
+                <button type="submit" class="login-btn glass-button w-full h-12 font-bold text-base rounded-xl shadow-lg transition-all active:scale-95 mt-2 flex items-center justify-center gap-2">
                     <span>เข้าสู่ระบบประเมิน</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
@@ -266,9 +252,9 @@
         </div>
     </div>
 
-    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน -->
-    <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-700">
-        <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center mt-20 transition-all duration-700 ease-in-out transform translate-y-0 px-8">
+    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (แอนิเมชันปลดล็อกแม่กุญแจดั้งเดิม) -->
+    <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-500">
+        <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transition-transform duration-500 transform translate-y-0 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
                 <svg id="icon-lock" class="w-10 h-10 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -326,7 +312,7 @@
             
             <div class="header-bg-box bg-white/70 px-6 h-12 rounded-2xl border border-white shadow-sm flex items-center justify-center gap-3">
                 <div id="display-judge-name" class="text-lg font-black text-blue-900">-</div>
-                <button id="logout-btn" title="ออกจากระบบ / สลับชื่อ" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold px-2.5 py-1 rounded-xl transition-all border border-rose-200/50 active:scale-95">
+                <button id="logout-btn" title="ออกจากระบบ / สลับเครื่อง" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 font-bold px-2.5 py-1 rounded-xl transition-all border border-rose-200/50 active:scale-95">
                     🚪 สลับเครื่อง
                 </button>
             </div>
@@ -347,19 +333,23 @@
             </button>
         </div>
 
-        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2 flex-1">
+        <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 pb-2 flex-1 touch-pan-y">
         </div>
     </main>
 
     <!-- Script -->
     <script>
-        // -----------------------------------------------------------------
-        // Google Sheet รหัสคณะกรรมการ
-        // -----------------------------------------------------------------
+        // 🔒 บังคับล็อก Touch Event ไม่ให้เลื่อนหน้าจอ ยกเว้นบริเวณการ์ดคะแนน
+        document.addEventListener('touchmove', function(e) {
+            if (!e.target.closest('#criteria-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
         const PASSWORD_SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
         const PASSWORD_SHEET_NAME = 'รหัสคณะกรรมการ';
 
-        // 📌 ตั้งค่าแยก GOOGLE SHEET ID และ Web App URL สำหรับแต่ละเครื่อง
+        // 📌 กำหนดค่าแยก Sheet ID และ Web App URL สำหรับแต่ละเครื่องให้ชัดเจน
         const JUDGE_CONFIGS = {
             'iPad 01': { 
                 sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8',
@@ -367,11 +357,11 @@
             },
             'iPad 02': { 
                 sheetId: '1ChJNDGBQ3E1yMImjU30RjVjShPtiXX3psMb2NQhc14Q',
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbzWTmHWni55_ApPJO8nT-6SsgEI4Oy7RfeCXxZxbW7MvCZ7O3p4ZaGcb8-wJVHUzRhi/exec'
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbyX_mQPOsipdTjczcbtR4Qz9QP-V_BH4Bm1Wp-kkGQQO3r0SzJ4bYDVleUupg8vqEVE/exec'
             },
             'iPad 03': { 
                 sheetId: '1qX5Re7Prh7R_Gx4lyflCKPpJ6jTadveKWhxCmDBXz_Q',
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbzBRjeyQ4PgpRFasxXDSEKChIXmTvtMRMaR7epk2LZqee7i2tCF4w0XwGrnIHu2dI7RfA/exec'
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbyjTa81kl1hMQaT_-OxHbGa20e59iqAJkP11xu9UAtnpjxURxLavQYt4N0SPC1Ld8X5qQ/exec'
             },
             'iPad 04': { sheetId: 'วาง_SHEET_ID_กรรมการ_4_ตรงนี้', scriptUrl: '' },
             'iPad 05': { sheetId: 'วาง_SHEET_ID_กรรมการ_5_ตรงนี้', scriptUrl: '' }
@@ -379,18 +369,12 @@
 
         let DEVICE_ID = 'iPad 01';
         
-        // ฟังก์ชันอ่านค่า Config ของเครื่องปัจจุบันแบบไดนามิก
         function getCurrentConfig() {
-            const currentDev = DEVICE_ID || localStorage.getItem('logged_judge_device') || 'iPad 01';
-            return JUDGE_CONFIGS[currentDev] || JUDGE_CONFIGS['iPad 01'];
+            return JUDGE_CONFIGS[DEVICE_ID] || JUDGE_CONFIGS['iPad 01'];
         }
 
-        // ข้อมูลกรรมการที่ดึงมาจาก Google Sheet
         let fetchedJudgesList = []; 
 
-        // -----------------------------------------------------------------
-        // ดึงข้อมูลรายชื่อกรรมการ + รหัสผ่าน จาก Google Sheet "รหัสคณะกรรมการ"
-        // -----------------------------------------------------------------
         async function fetchJudgeCredentials() {
             try {
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${PASSWORD_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(PASSWORD_SHEET_NAME)}`;
@@ -408,8 +392,6 @@
                             const dev = String(row.c[0].v || '').trim();
                             const rawName = String(row.c[1] ? (row.c[1].v || '') : '').trim();
                             const pwd = String(row.c[2] ? (row.c[2].v || '') : '').trim();
-
-                            // ✂️ ตัดเครื่องหมาย () ออกจากชื่อทั้งหมด
                             const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
 
                             if (dev && !dev.includes('อุปกรณ์')) {
@@ -418,15 +400,12 @@
                         }
                     });
                 }
-
                 renderJudgeSelectOptions();
-
             } catch (err) {
                 console.error("เกิดข้อผิดพลาดในการดึงข้อมูลรหัสผ่าน:", err);
             }
         }
 
-        // แสดงรายชื่อกรรมการลงใน Dropdown (<select>) แบบไม่มี ()
         function renderJudgeSelectOptions() {
             const loginJudgeSelect = document.getElementById('login-judge-select');
             const selectedDev = document.getElementById('login-device-select').value;
@@ -456,9 +435,6 @@
             }
         }
 
-        // -----------------------------------------------------------------
-        // ระบบสลับโหมดมืด Dark Mode
-        // -----------------------------------------------------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconMoon = document.getElementById('theme-icon-moon');
         const themeIconSun = document.getElementById('theme-icon-sun');
@@ -478,17 +454,13 @@
         }
 
         themeToggleBtn.addEventListener('click', () => {
-            const isDark = !document.body.classList.contains('dark-mode');
-            enableDarkMode(isDark);
+            enableDarkMode(!document.body.classList.contains('dark-mode'));
         });
 
         if (localStorage.getItem('ipad_theme') === 'dark') {
             enableDarkMode(true);
         }
 
-        // -----------------------------------------------------------------
-        // ระบบล็อกอินเข้าใช้งานกรรมการ + ตรวจสอบรหัสผ่านกับชีท
-        // -----------------------------------------------------------------
         const loginOverlay = document.getElementById('login-overlay');
         const loginForm = document.getElementById('login-form');
         const loginDeviceSelect = document.getElementById('login-device-select');
@@ -509,7 +481,6 @@
             const inputPwd = loginPasswordInput.value.trim();
 
             loginErrorMsg.classList.add('hidden');
-
             const targetJudge = fetchedJudgesList.find(j => j.name === selectedJudgeName);
 
             if (targetJudge && targetJudge.password && inputPwd !== targetJudge.password) {
@@ -521,7 +492,6 @@
             if (!devId || !selectedJudgeName) return;
 
             DEVICE_ID = devId;
-
             localStorage.setItem('logged_judge_device', devId);
             localStorage.setItem('logged_judge_name', selectedJudgeName);
 
@@ -565,13 +535,7 @@
             }
         });
 
-        // -----------------------------------------------------------------
-        // ระบบป้องกันการซูมและการลากหน้าจอบน iPad
-        // -----------------------------------------------------------------
         document.addEventListener('gesturestart', (e) => e.preventDefault());
-        document.addEventListener('touchmove', (e) => {
-            if (e.scale !== 1) e.preventDefault();
-        }, { passive: false });
 
         const overlay = document.getElementById('waiting-overlay');
         const waitingModal = document.getElementById('waiting-modal');
@@ -597,9 +561,6 @@
 
         let currentContestantCode = '';
 
-        // -----------------------------------------------------------------
-        // โครงสร้างแผนผังการดึงข้อมูลเกณฑ์การให้คะแนน
-        // -----------------------------------------------------------------
         const ROUND_CONFIGS = {
             'รอบที่ 1': { sheet: 'รอบที่ 1', ranges: ['D11:F11', 'G10:I10'] },
             'รอบที่ 2': { sheet: 'รอบที่ 2', ranges: ['D10:G10'] },
@@ -613,10 +574,7 @@
                 const config = getCurrentConfig();
                 const currentSheetId = config.sheetId;
 
-                if (!currentSheetId || currentSheetId.includes('วาง_SHEET_ID')) {
-                    console.warn('ยังไม่ได้ระบุ Sheet ID ของกรรมการเครื่องนี้');
-                    return [];
-                }
+                if (!currentSheetId || currentSheetId.includes('วาง_SHEET_ID')) return [];
 
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${currentSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`;
                 const response = await fetch(gvizUrl);
@@ -701,22 +659,21 @@
         }
 
         // -----------------------------------------------------------------
-        // ระบบรวบรวมคะแนนและส่งไปยัง Google Sheets
+        // บันทึกคะแนนและส่งข้อมูลเข้า Google Sheets ตามเครื่องที่ล็อกอิน (DEVICE_ID)
         // -----------------------------------------------------------------
         submitBtn.addEventListener('click', async () => {
-            iconLock.classList.remove('opacity-0');
-            iconUnlock.classList.add('opacity-0');
+            const config = getCurrentConfig();
+
+            overlay.style.display = 'flex';
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            
+            iconLock.style.opacity = '1';
+            iconUnlock.style.opacity = '0';
             iconContainer.classList.remove('scale-110');
             waitingTitle.classList.remove('text-green-600');
             
             waitingTitle.textContent = "กำลังบันทึกคะแนน...";
-            waitingText.textContent = "กำลังส่งข้อมูลเข้า Google Sheet...";
-            
-            overlay.style.display = 'flex';
-            setTimeout(() => {
-                overlay.classList.remove('opacity-0');
-                waitingModal.classList.remove('-translate-y-[100vh]'); 
-            }, 50);
+            waitingText.textContent = `กำลังบันทึกเข้าชีท ${DEVICE_ID}...`;
 
             const scoreInputs = document.querySelectorAll('.score-input');
             const scoresList = [];
@@ -726,7 +683,6 @@
             });
 
             const currentRound = displayRoundNode.textContent.trim();
-            const config = getCurrentConfig();
 
             const payload = {
                 judgeId: DEVICE_ID,
@@ -738,9 +694,8 @@
             };
 
             try {
-                const targetScriptUrl = config.scriptUrl;
-                if (targetScriptUrl && targetScriptUrl.startsWith('http')) {
-                    await fetch(targetScriptUrl, {
+                if (config.scriptUrl && config.scriptUrl.startsWith('http')) {
+                    await fetch(config.scriptUrl, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
@@ -759,7 +714,7 @@
         });
 
         // -----------------------------------------------------------------
-        // ประมวลผลคำสั่งจาก Admin Console
+        // ประมวลผลคำสั่งจาก Admin (เล่นแอนิเมชันแม่กุญแจเขียวดั้งเดิม)
         // -----------------------------------------------------------------
         const pageLoadTime = Date.now();
         let lastProcessedTime = pageLoadTime;
@@ -791,27 +746,17 @@
                     await loadCriteriaForRound(newRoundText);
                 }
                 
-                let elementsToAnimate = [profileCircle, displayNicknameWrapper, contestantDetailsWrapper];
-                if (isRoundChanged) {
-                    elementsToAnimate.push(displayRoundWrapper);
-                }
-                
-                elementsToAnimate.forEach(el => {
-                    if (el) {
-                        el.style.transition = 'opacity 0.3s ease';
-                        el.style.opacity = '0';
-                    }
-                });
-                
-                iconLock.classList.add('opacity-0');
-                iconUnlock.classList.remove('opacity-0');
+                // 1. เปลี่ยนเป็นแม่กุญแจสีเขียวปลดล็อก + ข้อความสีเขียว
+                iconLock.style.opacity = '0';
+                iconUnlock.style.opacity = '1';
                 iconContainer.classList.add('scale-110');
                 waitingTitle.classList.add('text-green-600');
                 waitingTitle.textContent = "ปลดล็อกแล้ว";
-                waitingText.textContent = "เตรียมแสดงข้อมูลผู้เข้าแข่งขัน...";
+                waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
                 
                 document.querySelectorAll('.score-input').forEach(input => input.value = '');
 
+                // 2. ให้กรรมการเห็นหน้าต่างปลดล็อกชัดเจน 1 วินาที
                 setTimeout(() => {
                     if (isRoundChanged) {
                         displayRoundNode.textContent = newRoundText;
@@ -819,7 +764,6 @@
                     
                     document.getElementById('display-number').textContent = numberStr;
                     document.getElementById('display-name').textContent = nameStr;
-                    
                     displayNicknameNode.textContent = nicknameStr ? nicknameStr : '-';
                     
                     const imageUrl = command.contestantImage || command.imageUrl;
@@ -829,54 +773,53 @@
                         profileCircle.textContent = justNumber || '?';
                     }
                     
+                    let elementsToAnimate = [profileCircle, displayNicknameWrapper, contestantDetailsWrapper];
+                    if (isRoundChanged) elementsToAnimate.push(displayRoundWrapper);
                     elementsToAnimate.forEach(el => {
                         if (el) {
-                            el.style.transition = '';
-                            el.style.opacity = '';
                             el.classList.remove('animate-wipe-diagonal');
                             void el.offsetWidth; 
                             el.classList.add('animate-wipe-diagonal');
                         }
                     });
                     
-                    waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
-
+                    // 3. จางหน้าต่าง Overlay ออกไปนุ่มนวล
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    
                     setTimeout(() => {
                         overlay.style.display = 'none';
+                        // รีเซ็ตสถานะหน้าต่างล็อกคืนค่าเตรียมใช้รอบถัดไป
+                        iconLock.style.opacity = '1';
+                        iconUnlock.style.opacity = '0';
+                        iconContainer.classList.remove('scale-110');
+                        waitingTitle.classList.remove('text-green-600');
                         waitingTitle.textContent = "กรุณารอสักครู่";
                         waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
-                        waitingTitle.classList.remove('text-green-600');
-                    }, 500); 
+                    }, 500);
                     
-                }, 300); 
+                }, 1000); 
             } 
             else if (command.action === 'LOCK_SCREEN') {
-                iconLock.classList.remove('opacity-0');
-                iconUnlock.classList.add('opacity-0');
+                overlay.style.display = 'flex';
+                void overlay.offsetWidth;
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                
+                iconLock.style.opacity = '1';
+                iconUnlock.style.opacity = '0';
                 iconContainer.classList.remove('scale-110');
                 waitingTitle.classList.remove('text-green-600');
                 
                 waitingTitle.textContent = "ล็อกหน้าจอแล้ว";
                 waitingText.textContent = "ผู้ควบคุมสั่งล็อกหน้าจอรับคะแนน...";
-                
-                overlay.style.display = 'flex';
-                setTimeout(() => {
-                    overlay.classList.remove('opacity-0');
-                    waitingModal.classList.remove('-translate-y-[100vh]'); 
-                }, 50);
             }
         }
 
-        // -----------------------------------------------------------------
-        // ระบบ MQTT Real-time Receiver & Heartbeat Sender
-        // -----------------------------------------------------------------
         const CMD_TOPIC = 'vru_pageant_2025/admin_cmd';
         const STATUS_TOPIC = 'vru_pageant_2025/device_status';
 
         const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
         mqttClient.on('connect', () => {
-            console.log('✅ iPad MQTT Connected!');
             connDot.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
             connText.className = "text-xs font-bold text-green-600 uppercase tracking-wide";
             connText.textContent = "เชื่อมต่อแล้ว";
@@ -910,7 +853,6 @@
         });
 
         mqttClient.on('error', (err) => {
-            console.error('MQTT Connection Error:', err);
             connDot.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
             connText.className = "text-xs font-bold text-red-600 uppercase tracking-wide";
             connText.textContent = "ขาดการเชื่อมต่อ";
@@ -925,10 +867,7 @@
             }
         });
 
-        // ดึงข้อมูลชื่อและรหัสผ่านจาก Google Sheet เมื่อเปิดหน้าเว็บ
         fetchJudgeCredentials();
-
-        // ตรวจสอบการล็อกอินที่มีอยู่
         checkExistingLogin();
     </script>
 </body>
