@@ -3,17 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <!-- กำหนดสีแถบสถานะของเบราว์เซอร์สำหรับ iOS / Safari -->
     <meta name="theme-color" id="theme-color-meta" content="#f0f7ff">
     <title>Admin Control - VRU Ambassador 2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- โหลดฟอนต์ Inter และ Kanit จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- MQTT SDK เชื่อมต่อสัญญาณ Real-time -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
     <style>
-        /* กำหนดสีพื้นหลังให้ครอบคลุมทั้ง HTML เพื่อไม่ให้เกิดขอบขาวเวลา Overscroll บน iPhone */
+        /* 🔤 กำหนดฟอนต์: ภาษาอังกฤษใช้ Inter / ไทยและตัวเลขใช้ Kanit */
+        @font-face {
+            font-family: 'Inter-Latin';
+            src: local('Inter');
+            unicode-range: U+0041-005A, U+0061-007A;
+        }
+
+        html, body, input, select, button {
+            font-family: 'Inter-Latin', 'Kanit', sans-serif;
+        }
+
         html {
             background-color: #f0f7ff;
             height: -webkit-fill-available;
@@ -21,13 +32,10 @@
         }
 
         body {
-            font-family: 'Noto Sans Thai', sans-serif;
             background: linear-gradient(135deg, #f0f7ff 0%, #d9ecff 100%);
             min-height: 100vh;
             min-height: -webkit-fill-available;
             transition: background 0.4s ease, color 0.4s ease;
-            
-            /* หลบขอบรอยบาก (Notch) และแถบด้านล่างของ iPhone */
             padding-top: max(12px, env(safe-area-inset-top));
             padding-bottom: max(12px, env(safe-area-inset-bottom));
             padding-left: max(12px, env(safe-area-inset-left));
@@ -130,45 +138,36 @@
             background: rgba(241, 247, 255, 0.96) !important;
         }
 
-        /* ----------------------------------------------------------------- */
-        /* 🌙 DARK MODE STYLES (ปรับสีให้กลมกลืนทุกซอกมุม) */
-        /* ----------------------------------------------------------------- */
+        /* 🌙 DARK MODE STYLES */
         html.dark-mode {
             background-color: #0b0f19 !important;
         }
-
         body.dark-mode {
             background: linear-gradient(135deg, #0b0f19 0%, #111827 100%) !important;
             color: #f1f5f9;
         }
-
         body.dark-mode .liquid-glass {
             background: rgba(17, 24, 39, 0.65);
             border-color: rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
-
         body.dark-mode .modal-glass {
             background: rgba(17, 24, 39, 0.92);
             border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.7);
         }
-
         body.dark-mode .glass-card {
             background: rgba(31, 41, 55, 0.6);
             border-color: rgba(255, 255, 255, 0.1);
             color: #f3f4f6;
         }
-
         body.dark-mode .glass-card:active, body.dark-mode .glass-card:hover {
             background: rgba(31, 41, 55, 0.85);
         }
-
         body.dark-mode .active-card {
             background: rgba(30, 58, 138, 0.6) !important;
             border-color: rgba(96, 165, 250, 0.8) !important;
         }
-
         body.dark-mode h1, 
         body.dark-mode h3, 
         body.dark-mode label,
@@ -176,33 +175,27 @@
         body.dark-mode .judge-header-title {
             color: #93c5fd !important;
         }
-
         body.dark-mode #round-box-container, 
         body.dark-mode #selected-card {
             background: rgba(31, 41, 55, 0.7) !important;
             border-color: rgba(255, 255, 255, 0.15) !important;
         }
-
         body.dark-mode #round-display-text {
             color: #e2e8f0 !important;
         }
-
         body.dark-mode #search-input {
             background: rgba(17, 24, 39, 0.8) !important;
             border-color: rgba(255, 255, 255, 0.2) !important;
             color: #f1f5f9 !important;
         }
-
         body.dark-mode .header-bg-box {
             background: rgba(31, 41, 55, 0.7) !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
             color: #f3f4f6 !important;
         }
-
         body.dark-mode #contestants-panel.state-expanded {
             background: rgba(17, 24, 39, 0.96) !important;
         }
-
         body.dark-mode .contestant-name-text {
             color: #f1f5f9 !important;
         }
@@ -237,19 +230,16 @@
         </div>
         
         <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-            <!-- ปุ่มสลับโหมด Dark Mode -->
             <button id="theme-toggle-btn" class="header-bg-box bg-white/80 hover:bg-white text-blue-900 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white shadow-sm flex items-center justify-center transition-all cursor-pointer shrink-0">
                 <span id="theme-icon-moon" class="text-base sm:text-lg">🌙</span>
                 <span id="theme-icon-sun" class="text-base sm:text-lg hidden">☀️</span>
             </button>
 
-            <!-- ปุ่มรีเฟรชรายชื่อ -->
             <button id="sync-sheet-btn" class="header-bg-box glass-button bg-white/80 hover:bg-white text-blue-900 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white shadow-sm font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shrink-0">
                 <svg id="sync-icon" class="w-4 h-4 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 <span>รีเฟรช</span>
             </button>
             
-            <!-- สถานะ MQTT -->
             <div class="header-bg-box bg-white/70 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white shadow-sm flex items-center gap-2 flex-1 sm:flex-none justify-center">
                 <div id="status-dot" class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse shrink-0"></div>
                 <div id="connection-status" class="text-[11px] sm:text-xs font-bold text-yellow-600 uppercase tracking-wide truncate">กำลังเชื่อมต่อ...</div>
@@ -257,18 +247,17 @@
         </div>
     </nav>
 
-    <!-- JUDGES CONNECTION BAR: แถบตรวจติดตามเน็ตและสถานะกรรมการ 5 ท่าน -->
+    <!-- JUDGES CONNECTION BAR: แสดงสถานะการล็อกอินและการส่งคะแนน -->
     <div class="relative z-[55] liquid-glass rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 mb-3 sm:mb-5 shrink-0 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
         <div class="flex items-center justify-between md:justify-start gap-2 shrink-0 md:border-r border-blue-200/80 md:pr-4">
             <span class="judge-header-title text-xs font-black text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
-                📱 สถานะเครื่องกรรมการ
+                📱 ติดตามกรรมการ
             </span>
             <span id="connected-count-badge" class="bg-blue-900 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                0/5 พร้อม
+                ล็อกอิน 0/5 | ส่งแล้ว 0/0
             </span>
         </div>
 
-        <!-- กล่องแสดงสถานะแบบ Grid บนมือถือ -->
         <div id="judges-status-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 sm:gap-2 flex-1 w-full">
         </div>
     </div>
@@ -366,9 +355,6 @@
 
     <!-- Script -->
     <script>
-        // -----------------------------------------------------------------
-        // ระบบสลับโหมดมืด Dark Mode & สลับสีแถบ Safari บน iPhone
-        // -----------------------------------------------------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeIconMoon = document.getElementById('theme-icon-moon');
         const themeIconSun = document.getElementById('theme-icon-sun');
@@ -380,14 +366,14 @@
                 document.body.classList.add('dark-mode');
                 themeIconMoon.classList.add('hidden');
                 themeIconSun.classList.remove('hidden');
-                themeColorMeta.setAttribute('content', '#0b0f19'); // สีขอบบน-ล่าง ของ iPhone โหมดมืด
+                themeColorMeta.setAttribute('content', '#0b0f19');
                 localStorage.setItem('admin_theme', 'dark');
             } else {
                 document.documentElement.classList.remove('dark-mode');
                 document.body.classList.remove('dark-mode');
                 themeIconMoon.classList.remove('hidden');
                 themeIconSun.classList.add('hidden');
-                themeColorMeta.setAttribute('content', '#f0f7ff'); // สีขอบบน-ล่าง ของ iPhone โหมดสว่าง
+                themeColorMeta.setAttribute('content', '#f0f7ff');
                 localStorage.setItem('admin_theme', 'light');
             }
         }
@@ -401,9 +387,6 @@
             enableDarkMode(true);
         }
 
-        // -----------------------------------------------------------------
-        // ระบบ Custom Lock Modal UI
-        // -----------------------------------------------------------------
         const lockModalOverlay = document.getElementById('lock-modal-overlay');
         const lockModalCard = document.getElementById('lock-modal-card');
         const closeLockModalBtn = document.getElementById('close-lock-modal-btn');
@@ -417,7 +400,6 @@
                 lockModalCard.classList.remove('scale-95');
                 lockModalCard.classList.add('scale-100');
             }, 10);
-
             autoCloseModalTimer = setTimeout(hideLockModal, 2500);
         }
 
@@ -435,9 +417,6 @@
             if (e.target === lockModalOverlay) hideLockModal();
         });
 
-        // -----------------------------------------------------------------
-        // ตัวแปร Google Sheet ข้อมูลผู้แข่งขัน
-        // -----------------------------------------------------------------
         const SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
         const SHEET_NAME = 'ใบคะแนนเช็คชื่อ';
         const SHEET_RANGE = 'A3:D32';
@@ -462,9 +441,6 @@
         const judgesStatusGrid = document.getElementById('judges-status-grid');
         const connectedCountBadge = document.getElementById('connected-count-badge');
 
-        // -----------------------------------------------------------------
-        // ระบบติดตามสถานะเน็ตเครื่องกรรมการ 1 - 5 (iPad 01 - iPad 05)
-        // -----------------------------------------------------------------
         const EXPECTED_JUDGES = [
             { id: 'iPad 01', label: 'คน 1' },
             { id: 'iPad 02', label: 'คน 2' },
@@ -479,65 +455,78 @@
                 id: j.id,
                 label: j.label,
                 lastSeen: 0,
-                judgeName: ''
+                judgeName: '',
+                status: 'IDLE'
             };
         });
 
         function renderJudgesStatus() {
             const now = Date.now();
-            let onlineCount = 0;
+            let loggedInCount = 0;
+            let submittedCount = 0;
 
             judgesStatusGrid.innerHTML = EXPECTED_JUDGES.map(j => {
                 const device = judgeDevicesState[j.id];
                 const isOnline = (now - device.lastSeen) < 6000;
+                const isLoggedIn = isOnline && device.judgeName && device.judgeName !== '-' && device.judgeName !== 'กำลังโหลดชื่อกรรมการ...';
                 
-                if (isOnline) onlineCount++;
+                if (isLoggedIn) loggedInCount++;
+                if (isLoggedIn && device.status === 'SUBMITTED') submittedCount++;
+
+                let statusBadgeHTML = '';
+                let cardBgClass = '';
+
+                if (!isOnline) {
+                    cardBgClass = 'bg-slate-500/10 border-slate-300/30 text-slate-500 opacity-60';
+                    statusBadgeHTML = `<span class="text-[9px] sm:text-[10px] font-bold text-slate-400">🔴 ออฟไลน์</span>`;
+                } else if (!isLoggedIn) {
+                    cardBgClass = 'bg-amber-500/10 border-amber-400/50 text-amber-900 dark:text-amber-300';
+                    statusBadgeHTML = `<span class="text-[9px] sm:text-[10px] font-bold text-amber-600 dark:text-amber-400">🟡 รอล็อกอิน</span>`;
+                } else if (device.status === 'SUBMITTED') {
+                    cardBgClass = 'bg-emerald-500/15 border-emerald-500/60 text-emerald-950 dark:text-emerald-300 shadow-sm';
+                    statusBadgeHTML = `<span class="text-[9px] sm:text-[10px] font-black text-emerald-600 dark:text-emerald-400">🟢 ส่งคะแนนแล้ว ✓</span>`;
+                } else {
+                    cardBgClass = 'bg-blue-500/10 border-blue-400/50 text-blue-950 dark:text-blue-300 shadow-sm';
+                    statusBadgeHTML = `<span class="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400">🔵 กำลังลงคะแนน</span>`;
+                }
+
+                const displayName = isLoggedIn ? device.judgeName : (isOnline ? 'เปิดเว็บ (ยังไม่ล็อกอิน)' : 'ไม่ได้เชื่อมต่อ');
 
                 return `
-                    <div class="flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-xl sm:rounded-2xl border transition-all ${
-                        isOnline 
-                        ? 'bg-emerald-500/10 border-emerald-400/50 text-emerald-950 dark:text-emerald-300 shadow-sm' 
-                        : 'bg-rose-500/10 border-rose-300/30 text-rose-900 dark:text-rose-400 opacity-60'
-                    }">
-                        <div class="relative flex items-center justify-center shrink-0">
-                            <span class="w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span>
-                        </div>
-                        <div class="flex flex-col min-w-0 flex-1">
-                            <div class="flex items-center gap-1 leading-none">
+                    <div class="flex flex-col p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border transition-all ${cardBgClass}">
+                        <div class="flex items-center justify-between gap-1 mb-1 leading-none">
+                            <div class="flex items-center gap-1">
                                 <span class="font-black text-[11px] sm:text-xs truncate">${j.id}</span>
                                 <span class="text-[9px] sm:text-[10px] font-bold text-slate-400">(${j.label})</span>
                             </div>
-                            <span class="text-[9px] sm:text-[10px] font-semibold ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'} mt-0.5 truncate">
-                                ${isOnline ? '🟢 ออนไลน์' : '🔴 หลุด'}
-                            </span>
+                            ${statusBadgeHTML}
+                        </div>
+                        <div class="text-[10px] sm:text-xs font-bold truncate ${isLoggedIn ? 'text-blue-900 dark:text-blue-200' : 'text-slate-400 font-normal'}">
+                            👤 ${displayName}
                         </div>
                     </div>
                 `;
             }).join('');
 
-            connectedCountBadge.textContent = `${onlineCount}/5 พร้อม`;
-            if (onlineCount === 5) {
-                connectedCountBadge.className = "bg-emerald-600 text-white text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm";
-            } else if (onlineCount > 0) {
-                connectedCountBadge.className = "bg-amber-500 text-white text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm";
+            connectedCountBadge.textContent = `ล็อกอิน ${loggedInCount}/5 | ส่งแล้ว ${submittedCount}/${loggedInCount}`;
+            if (submittedCount === loggedInCount && loggedInCount > 0) {
+                connectedCountBadge.className = "bg-emerald-600 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm";
+            } else if (loggedInCount > 0) {
+                connectedCountBadge.className = "bg-blue-800 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm";
             } else {
-                connectedCountBadge.className = "bg-slate-400 text-white text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full";
+                connectedCountBadge.className = "bg-slate-400 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full";
             }
         }
 
         setInterval(renderJudgesStatus, 2000);
         renderJudgesStatus();
 
-        // -----------------------------------------------------------------
-        // ระบบ MQTT Real-time Broker
-        // -----------------------------------------------------------------
         const CMD_TOPIC = 'vru_pageant_2025/admin_cmd';
         const STATUS_TOPIC = 'vru_pageant_2025/device_status';
 
         const mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
         mqttClient.on('connect', () => {
-            console.log('✅ Admin MQTT Connected!');
             statusDot.className = "w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]";
             connectionStatus.className = "text-[11px] sm:text-xs font-bold text-green-600 uppercase tracking-wide truncate";
             connectionStatus.textContent = 'ONLINE';
@@ -550,8 +539,16 @@
                 try {
                     const data = JSON.parse(message.toString());
                     if (data.deviceId && judgeDevicesState[data.deviceId]) {
-                        judgeDevicesState[data.deviceId].lastSeen = Date.now();
-                        judgeDevicesState[data.deviceId].judgeName = data.judgeName || '';
+                        const dev = judgeDevicesState[data.deviceId];
+                        dev.lastSeen = Date.now();
+                        dev.judgeName = (data.judgeName && data.judgeName !== '-' && data.judgeName !== 'กำลังโหลดชื่อกรรมการ...') ? data.judgeName : '';
+                        
+                        if (data.status === 'SUBMITTED' || data.hasSubmitted) {
+                            dev.status = 'SUBMITTED';
+                        } else if (data.status) {
+                            dev.status = data.status;
+                        }
+                        
                         renderJudgesStatus();
                     }
                 } catch (e) {
@@ -561,7 +558,6 @@
         });
 
         mqttClient.on('error', (err) => {
-            console.error('MQTT Error:', err);
             statusDot.className = "w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse";
             connectionStatus.className = "text-[11px] sm:text-xs font-bold text-red-600 uppercase tracking-wide truncate";
             connectionStatus.textContent = 'ขัดข้อง';
@@ -574,9 +570,6 @@
             }
         }
 
-        // -----------------------------------------------------------------
-        // ระบบการเปลี่ยนรอบแบบ Animated Slide
-        // -----------------------------------------------------------------
         const roundBoxContainer = document.getElementById('round-box-container');
         const roundDisplayText = document.getElementById('round-display-text');
         const roundSelect = document.getElementById('round-select');
@@ -593,13 +586,11 @@
 
         function updateRoundIndex(newIdx, animDirection) {
             if (newIdx < 0 || newIdx >= roundsList.length || newIdx === currentRoundIdx) return;
-            
             currentRoundIdx = newIdx;
             roundSelect.selectedIndex = currentRoundIdx;
             
             roundDisplayText.classList.remove('anim-slide-up', 'anim-slide-down');
             void roundDisplayText.offsetWidth;
-            
             roundDisplayText.textContent = roundsList[currentRoundIdx].label;
             
             if (animDirection === 'up') {
@@ -623,7 +614,6 @@
         roundBoxContainer.addEventListener('touchend', (e) => {
             if (!touchStartY || e.changedTouches.length !== 1) return;
             const diffY = touchStartY - e.changedTouches[0].clientY;
-            
             if (Math.abs(diffY) > 20) {
                 if (diffY > 0) updateRoundIndex(currentRoundIdx + 1, 'up');
                 else updateRoundIndex(currentRoundIdx - 1, 'down');
@@ -636,18 +626,13 @@
             updateRoundIndex(nextIdx, 'up');
         });
 
-        // -----------------------------------------------------------------
-        // ระบบ Drag Handling (พาเนลรายชื่อ)
-        // -----------------------------------------------------------------
         const contestantsPanel = document.getElementById('contestants-panel');
         const dragHandleBar = document.getElementById('drag-handle-bar');
-
         let currentState = 'normal';
 
         function setPanelState(newState) {
             currentState = newState;
             contestantsPanel.classList.remove('state-minimized', 'state-expanded');
-            
             if (newState === 'minimized') contestantsPanel.classList.add('state-minimized');
             else if (newState === 'expanded') contestantsPanel.classList.add('state-expanded');
         }
@@ -679,7 +664,6 @@
         dragHandleBar.addEventListener('pointerup', (e) => {
             if (!isDragging) return;
             isDragging = false;
-            
             contestantsPanel.style.transition = '';
             contestantsPanel.style.transform = '';
 
@@ -691,14 +675,10 @@
                 else setPanelState('minimized');
             } else if (Math.abs(currentDeltaY) <= 10) {
                 if (currentState === 'normal') setPanelState('expanded');
-                else if (currentState === 'expanded') setPanelState('normal');
                 else setPanelState('normal');
             }
         });
 
-        // -----------------------------------------------------------------
-        // ดึงข้อมูลผู้เข้าแข่งขันจาก Google Sheets
-        // -----------------------------------------------------------------
         async function fetchContestants() {
             syncIcon.classList.add('animate-spin');
             contestantsContainer.innerHTML = `
@@ -715,7 +695,6 @@
                 
                 const jsonString = text.substring(47, text.length - 2);
                 const data = JSON.parse(jsonString);
-
                 contestantsData = [];
 
                 if (data.table && data.table.rows) {
@@ -725,7 +704,6 @@
                             const name = String(row.c[1] ? (row.c[1].v || '') : '').trim();
                             const nickname = String(row.c[2] ? (row.c[2].v || '') : '').trim();
                             const faculty = String(row.c[3] ? (row.c[3].v || '') : '').trim();
-
                             const isValidName = name !== '' && !name.includes('ชื่อ-นามสกุล') && !name.includes('ชื่อ - นามสกุล');
 
                             if (code !== '' && isValidName) {
@@ -740,7 +718,6 @@
                 contestantCount.textContent = `${contestantsData.length} คน`;
 
             } catch (err) {
-                console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', err);
                 contestantsContainer.innerHTML = `
                     <div class="text-center py-8 text-rose-600 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold">
                         ⚠️ ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ
@@ -813,9 +790,15 @@
             renderContestants(filtered);
         });
 
-        // ปุ่มปลดล็อก iPad
         sendCommandBtn.addEventListener('click', () => {
             if (!selectedContestant) return;
+
+            EXPECTED_JUDGES.forEach(j => {
+                if (judgeDevicesState[j.id]) {
+                    judgeDevicesState[j.id].status = 'SCORING';
+                }
+            });
+            renderJudgesStatus();
 
             const commandData = {
                 action: 'START_VOTING',
@@ -841,7 +824,6 @@
             }, 1500);
         });
 
-        // ปุ่มสั่งล็อกหน้าจอ iPad (ใช้ Custom Modal)
         lockScreenBtn.addEventListener('click', () => {
             const commandData = {
                 action: 'LOCK_SCREEN',
