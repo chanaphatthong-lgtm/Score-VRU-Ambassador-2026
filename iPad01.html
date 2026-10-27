@@ -100,17 +100,22 @@
             transition: all 0.4s ease;
         }
         
+        /* -----------------------------------------------------
+           แอนิเมชันเปิด/ปิด ฉากล็อกหน้าจอ (สมูทขึ้น/ลง)
+           ----------------------------------------------------- */
         .modal-glass {
             background: rgba(255, 255, 255, 0.88); 
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 15px 40px 0 rgba(31, 38, 135, 0.15);
+            /* แอนิเมชันตอนเลื่อนกล่อง */
             transition: transform 0.9s cubic-bezier(0.68, -0.1, 0.265, 1.15), opacity 0.8s ease;
         }
 
         #waiting-overlay {
-            transition: opacity 0.9s ease, backdrop-filter 0.9s ease;
+            /* แอนิเมชันการเบลอและจางหายของฉากหลัง */
+            transition: opacity 0.9s ease, backdrop-filter 0.9s ease, -webkit-backdrop-filter 0.9s ease;
         }
 
         .login-card-theme {
@@ -290,7 +295,7 @@
         </div>
     </div>
 
-    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (เพิ่มแอนิเมชันเลื่อนขึ้นและจางหาย) -->
+    <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน (เพิ่มแอนิเมชันเลื่อนขึ้น-ลงและจางหาย) -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center">
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transform translate-y-0 opacity-100 px-8">
             <div id="icon-container" class="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
@@ -466,7 +471,6 @@
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
         function applyTheme(isDark) {
-            // บังคับเปลี่ยน class ที่ HTML ด้วยเพื่อแก้บัคพื้นหลังไม่สุดขอบ
             if (isDark) {
                 document.documentElement.classList.add('dark-mode');
                 document.body.classList.add('dark-mode');
@@ -659,21 +663,38 @@
             });
         }
 
+        // =========================================================
+        // แอนิเมชันย้อนกลับ (ล็อกหน้าจอเมื่อบันทึกคะแนน)
+        // =========================================================
         submitBtn.addEventListener('click', async () => {
             const currentDev = deviceIdText.textContent.trim() || 'iPad 01';
             const config = JUDGE_CONFIGS[currentDev] || JUDGE_CONFIGS['iPad 01'];
 
-            // รีเซ็ตตำแหน่งกล่องสี่เหลี่ยมและความทึบ
-            waitingModal.style.transform = 'translateY(0)';
-            waitingModal.style.opacity = '1';
-            overlay.classList.remove('opacity-0', 'hidden');
+            // 1. นำฉากหลังขึ้นมาก่อน (โปร่งใส)
             overlay.style.display = 'flex';
+            overlay.classList.remove('hidden');
             
+            // 2. เซ็ตตำแหน่งกล่องให้อยู่ด้านบน (-120vh) แล้วค่อยๆ เลื่อนลงมา
+            waitingModal.style.transition = 'none'; // ปิด transition ชั่วคราวเพื่อตั้งค่าเริ่มต้น
+            waitingModal.style.transform = 'translateY(-120vh)';
+            waitingModal.style.opacity = '0';
+            
+            // เปลี่ยนข้อความกุญแจเป็นสถานะล็อก
             iconContainer.classList.remove('is-unlocked', 'scale-110');
             waitingTitle.classList.remove('text-green-600');
-            
             waitingTitle.textContent = "กำลังบันทึกคะแนน...";
             waitingText.textContent = `กำลังบันทึกเข้าชีท ${currentDev}...`;
+            
+            // 3. เริ่มแอนิเมชันเลื่อนลง และค่อยๆ เบลอฉากหลัง
+            setTimeout(() => {
+                waitingModal.style.transition = 'transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease';
+                waitingModal.style.transform = 'translateY(0)';
+                waitingModal.style.opacity = '1';
+                
+                overlay.classList.remove('opacity-0');
+                overlay.style.backdropFilter = 'blur(20px)';
+                overlay.style.webkitBackdropFilter = 'blur(20px)';
+            }, 50);
 
             const scoreInputs = document.querySelectorAll('.score-input');
             const scoresList = [];
@@ -701,11 +722,15 @@
                         body: JSON.stringify(payload)
                     });
                 }
-                waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
-                waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+                setTimeout(() => {
+                    waitingTitle.textContent = "ส่งคะแนนเรียบร้อย!";
+                    waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+                }, 800); // รอให้กล่องลงมาเสร็จก่อนค่อยเปลี่ยนข้อความ
             } catch (err) {
-                waitingTitle.textContent = "บันทึกเรียบร้อย";
-                waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+                setTimeout(() => {
+                    waitingTitle.textContent = "บันทึกเรียบร้อย";
+                    waitingText.textContent = "กำลังรอผู้ควบคุมเปิดระบบสำหรับคนถัดไป...";
+                }, 800);
             }
         });
 
@@ -772,7 +797,8 @@
                 // 2. แอนิเมชันเปิดจอ: รอโชว์กุญแจเขียวสักพัก แล้วให้กล่องเลื่อนขึ้นพ้นจอพร้อมฉากหลังหายเบลอ
                 setTimeout(() => {
                     
-                    // ให้กล่องสี่เหลี่ยมกลางจอเลื่อนขึ้นและจางหายไป
+                    // ปรับกลับมาใช้ transition สำหรับเลื่อนขึ้น
+                    waitingModal.style.transition = 'transform 0.9s cubic-bezier(0.68, -0.1, 0.265, 1.15), opacity 0.8s ease';
                     waitingModal.style.transform = 'translateY(-120vh)';
                     waitingModal.style.opacity = '0';
                     
@@ -786,37 +812,43 @@
                         overlay.style.display = 'none';
                         overlay.classList.add('hidden');
                         
-                        // รีเซ็ตค่าสไตล์กลับมาเผื่อหน้าจอโดนล็อกอีกรอบ
-                        waitingModal.style.transform = 'translateY(0)';
-                        waitingModal.style.opacity = '1';
-                        overlay.classList.remove('opacity-0');
-                        overlay.style.backdropFilter = '';
-                        overlay.style.webkitBackdropFilter = '';
+                        // รีเซ็ตค่าสไตล์กลับมาเผื่อหน้าจอโดนล็อกอีกรอบ (แต่ซ่อนไว้ก่อน)
+                        waitingModal.style.transition = 'none'; // ปิดแอนิเมชันตอนรีเซ็ต
+                        waitingModal.style.transform = 'translateY(-120vh)';
                         
                         iconContainer.classList.remove('is-unlocked', 'scale-110');
                         waitingTitle.classList.remove('text-green-600');
                         
                         waitingTitle.textContent = "กรุณารอสักครู่";
                         waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
-                    }, 800); // 0.8 วินาทีคือระยะเวลาของแอนิเมชันเลื่อนขึ้น
+                    }, 800); 
                     
-                }, 1200); // 1.2 วินาทีคือเวลาที่โชว์กุญแจเขียวให้กรรมการเห็น
+                }, 1200);
             } 
             else if (command.action === 'LOCK_SCREEN') {
-                // รีเซ็ตค่าก่อนโชว์ฉากล็อก
-                waitingModal.style.transform = 'translateY(0)';
-                waitingModal.style.opacity = '1';
-                overlay.classList.remove('opacity-0', 'hidden');
-                overlay.style.backdropFilter = '';
-                overlay.style.webkitBackdropFilter = '';
-                
+                // ถ้าแอดมินสั่งล็อก ให้สไลด์ลงมาเหมือนตอนกดบันทึกคะแนน
                 overlay.style.display = 'flex';
+                overlay.classList.remove('hidden');
+                
+                waitingModal.style.transition = 'none';
+                waitingModal.style.transform = 'translateY(-120vh)';
+                waitingModal.style.opacity = '0';
                 
                 iconContainer.classList.remove('is-unlocked', 'scale-110');
                 waitingTitle.classList.remove('text-green-600');
                 
                 waitingTitle.textContent = "ล็อกหน้าจอแล้ว";
                 waitingText.textContent = "ผู้ควบคุมสั่งล็อกหน้าจอรับคะแนน...";
+
+                setTimeout(() => {
+                    waitingModal.style.transition = 'transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease';
+                    waitingModal.style.transform = 'translateY(0)';
+                    waitingModal.style.opacity = '1';
+                    
+                    overlay.classList.remove('opacity-0');
+                    overlay.style.backdropFilter = 'blur(20px)';
+                    overlay.style.webkitBackdropFilter = 'blur(20px)';
+                }, 50);
             }
         }
 
