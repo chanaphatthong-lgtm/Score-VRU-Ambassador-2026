@@ -69,10 +69,10 @@
         /* ----------------------------------------------------------------- */
         .login-card-theme {
             background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
         }
         .login-card-theme .login-title { color: #1e3a8a; }
         .login-card-theme .login-subtitle { color: #64748b; }
@@ -141,7 +141,7 @@
         body.dark-mode .login-card-theme {
             background: rgba(15, 23, 42, 0.92);
             border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
         }
         body.dark-mode .login-card-theme .login-title { color: #93c5fd; }
         body.dark-mode .login-card-theme .login-subtitle { color: #94a3b8; }
@@ -219,21 +219,21 @@
 <body class="text-slate-800 p-6 flex flex-col h-screen overflow-hidden select-none">
 
     <!-- OVERLAY 1: หน้าจอล็อกอินเข้าใช้งานเครื่องกรรมการ -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 transition-all duration-500">
-        <div class="login-card-theme w-full max-w-[480px] p-8 rounded-3xl shadow-2xl text-center flex flex-col items-center">
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950/75 backdrop-blur-2xl z-[100] flex items-center justify-center p-6 transition-all duration-500">
+        <div class="login-card-theme w-full max-w-[580px] p-10 md:p-12 rounded-[2.5rem] shadow-2xl text-center flex flex-col items-center">
             
             <!-- โลโก้งาน -->
-            <div class="w-32 h-32 mb-3 flex items-center justify-center shrink-0">
-                <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-lg" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
+            <div class="w-48 h-48 mb-4 flex items-center justify-center shrink-0">
+                <img id="event-logo" src="logo.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-xl" onError="this.onerror=null; this.src='https://img.icons8.com/color/144/scales.png';">
             </div>
 
-            <h2 class="login-title text-2xl font-bold mb-1">เข้าสู่ระบบกรรมการ</h2>
-            <p class="login-subtitle text-xs font-semibold mb-6">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+            <h2 class="login-title text-3xl font-black mb-1.5 leading-tight">เข้าสู่ระบบกรรมการ</h2>
+            <p class="login-subtitle text-sm font-semibold mb-8">เลือกหมายเลขเครื่อง iPad และกรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
 
-            <form id="login-form" class="w-full space-y-4 text-left">
+            <form id="login-form" class="w-full space-y-5 text-left">
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">หมายเลขเครื่องกรรมการ</label>
-                    <select id="login-device-select" class="login-input w-full h-12 rounded-2xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-sm font-bold mb-2">หมายเลขเครื่องกรรมการ</label>
+                    <select id="login-device-select" class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
                         <option value="iPad 01">iPad 01</option>
                         <option value="iPad 02">iPad 02</option>
                         <option value="iPad 03">iPad 03</option>
@@ -243,24 +243,24 @@
                 </div>
 
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">ชื่อ-นามสกุล กรรมการ</label>
-                    <select id="login-judge-select" required class="login-input w-full h-12 rounded-2xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-sm font-bold mb-2">ชื่อ-นามสกุล กรรมการ</label>
+                    <select id="login-judge-select" required class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
                         <option value="">กำลังโหลดชื่อกรรมการ...</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="login-label block text-xs font-bold mb-1.5">รหัสผ่าน</label>
-                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-12 rounded-2xl px-4 text-base font-bold outline-none transition-all shadow-inner">
+                    <label class="login-label block text-sm font-bold mb-2">รหัสผ่าน</label>
+                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน..." class="login-input w-full h-14 rounded-2xl px-5 text-lg font-bold outline-none transition-all shadow-inner">
                 </div>
 
-                <div id="login-error-msg" class="text-xs font-bold text-rose-500 text-center hidden py-1">
+                <div id="login-error-msg" class="text-sm font-bold text-rose-500 text-center hidden py-1">
                     ⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
                 </div>
 
-                <button type="submit" class="login-btn glass-button w-full h-13 font-bold text-lg py-3 rounded-2xl shadow-lg transition-all active:scale-95 mt-2 flex items-center justify-center gap-2">
+                <button type="submit" class="login-btn glass-button w-full h-14 font-bold text-xl rounded-2xl shadow-xl transition-all active:scale-95 mt-4 flex items-center justify-center gap-3">
                     <span>เข้าสู่ระบบประเมิน</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
             </form>
         </div>
@@ -274,7 +274,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
                 <svg id="icon-unlock" class="w-10 h-10 absolute opacity-0 transition-opacity duration-300 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                 </svg>
             </div>
             <div class="h-[80px] flex flex-col items-center justify-start">
@@ -353,8 +353,8 @@
 
     <!-- Script -->
     <script>
-        // URL สำหรับบันทึกคะแนน Google Apps Script
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec';
+        // URL สำหรับบันทึกคะแนน Google Apps Script สำรอง
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec';
 
         // -----------------------------------------------------------------
         // Google Sheet รหัสคณะกรรมการ
@@ -362,17 +362,24 @@
         const PASSWORD_SHEET_ID = '1wXJcgOcb7-AB3LyzH-NejVgNLQ8JxCbEJ_vHta780r0';
         const PASSWORD_SHEET_NAME = 'รหัสคณะกรรมการ';
 
-        // 📌 ตั้งค่าแยก GOOGLE SHEET ID สำหรับบันทึกคะแนนของแต่ละท่าน
+        // 📌 ตั้งค่าแยก GOOGLE SHEET ID และ Web App URL สำหรับแต่ละเครื่อง
         const JUDGE_CONFIGS = {
-            'iPad 01': { sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8' }, // ชีทกรรมการ 1
-            'iPad 02': { sheetId: 'วาง_SHEET_ID_กรรมการ_2_ตรงนี้' },
-            'iPad 03': { sheetId: 'วาง_SHEET_ID_กรรมการ_3_ตรงนี้' },
-            'iPad 04': { sheetId: 'วาง_SHEET_ID_กรรมการ_4_ตรงนี้' },
-            'iPad 05': { sheetId: 'วาง_SHEET_ID_กรรมการ_5_ตรงนี้' }
+            'iPad 01': { 
+                sheetId: '1mQ0ZMdVzkJe6Jgma9m9rn-tZ-otMVQf4ame_5i_3rR8',
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbzQzsoTBE0rxF9wzFs8DJtlqUFqub80gLXb83lJ5xNVphXlGpQwttm4IkJtOAZ6HF_Lyg/exec'
+            },
+            'iPad 02': { 
+                sheetId: '1ChJNDGBQ3E1yMImjU30RjVjShPtiXX3psMb2NQhc14Q',
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbx9GyYcrQrsDmvr1h9Y51cjRHthwFpJQlP4XliF-PxtBulp5Ur6NJ2zPUsHYCFndXCC/exec'
+            },
+            'iPad 03': { sheetId: 'วาง_SHEET_ID_กรรมการ_3_ตรงนี้', scriptUrl: '' },
+            'iPad 04': { sheetId: 'วาง_SHEET_ID_กรรมการ_4_ตรงนี้', scriptUrl: '' },
+            'iPad 05': { sheetId: 'วาง_SHEET_ID_กรรมการ_5_ตรงนี้', scriptUrl: '' }
         };
 
         let DEVICE_ID = 'iPad 01';
         let CURRENT_SHEET_ID = JUDGE_CONFIGS['iPad 01'].sheetId;
+        let CURRENT_SCRIPT_URL = JUDGE_CONFIGS['iPad 01'].scriptUrl || DEFAULT_SCRIPT_URL;
         
         // ข้อมูลกรรมการที่ดึงมาจาก Google Sheet
         let fetchedJudgesList = []; 
@@ -434,13 +441,12 @@
 
                 const opt = document.createElement('option');
                 opt.value = item.name;
-                opt.textContent = item.name; // แสดงเฉพาะชื่อ-สกุล ไม่มี ()
+                opt.textContent = item.name;
                 opt.dataset.device = item.device;
                 opt.dataset.password = item.password;
                 loginJudgeSelect.appendChild(opt);
             });
 
-            // เลือกระบุชื่อกรรมการที่ตรงกับเครื่อง iPad อัตโนมัติ
             if (matchedJudgeName) {
                 loginJudgeSelect.value = matchedJudgeName;
             }
@@ -500,10 +506,8 @@
 
             loginErrorMsg.classList.add('hidden');
 
-            // หาข้อมูลกรรมการจากรายการที่ดึงมาจากชีท
             const targetJudge = fetchedJudgesList.find(j => j.name === selectedJudgeName);
 
-            // ตรวจสอบรหัสผ่านตรงกับคอลัมน์ C ในชีทหรือไม่
             if (targetJudge && targetJudge.password && inputPwd !== targetJudge.password) {
                 loginErrorMsg.textContent = '⚠️ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
                 loginErrorMsg.classList.remove('hidden');
@@ -514,6 +518,7 @@
 
             DEVICE_ID = devId;
             CURRENT_SHEET_ID = JUDGE_CONFIGS[devId] ? JUDGE_CONFIGS[devId].sheetId : '';
+            CURRENT_SCRIPT_URL = (JUDGE_CONFIGS[devId] && JUDGE_CONFIGS[devId].scriptUrl) ? JUDGE_CONFIGS[devId].scriptUrl : DEFAULT_SCRIPT_URL;
 
             localStorage.setItem('logged_judge_device', devId);
             localStorage.setItem('logged_judge_name', selectedJudgeName);
@@ -530,10 +535,7 @@
             deviceIdText.textContent = devId;
             displayJudgeName.textContent = jName;
             
-            // ส่งสัญญาณแจ้งแอดมินทันทีที่ล็อกอิน
             sendHeartbeat();
-
-            // โหลดเกณฑ์คะแนนตาม Sheet ของเครื่องนั้น
             loadCriteriaForRound('รอบที่ 1');
         }
 
@@ -544,6 +546,7 @@
             if (savedDev && savedName && JUDGE_CONFIGS[savedDev]) {
                 DEVICE_ID = savedDev;
                 CURRENT_SHEET_ID = JUDGE_CONFIGS[savedDev].sheetId;
+                CURRENT_SCRIPT_URL = JUDGE_CONFIGS[savedDev].scriptUrl || DEFAULT_SCRIPT_URL;
                 loginDeviceSelect.value = savedDev;
 
                 applyLoggedInUser(savedDev, savedName);
@@ -730,8 +733,9 @@
             };
 
             try {
-                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
-                    await fetch(GOOGLE_SCRIPT_URL, {
+                const targetScriptUrl = CURRENT_SCRIPT_URL || DEFAULT_SCRIPT_URL;
+                if (targetScriptUrl && targetScriptUrl.startsWith('http')) {
+                    await fetch(targetScriptUrl, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
