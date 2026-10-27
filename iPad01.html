@@ -255,11 +255,11 @@
     <!-- OVERLAY 2: หน้าจอล็อกรอแอดมิน -->
     <div id="waiting-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xl z-50 flex items-center justify-center transition-opacity duration-500">
         <div id="waiting-modal" class="modal-glass w-[460px] h-[320px] rounded-3xl flex flex-col items-center justify-center text-center transition-transform duration-500 transform translate-y-0 px-8">
-            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0 relative">
-                <svg id="icon-lock" class="w-10 h-10 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="icon-container" class="w-20 h-20 bg-white shadow-md text-blue-600 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 shrink-0">
+                <svg id="icon-lock" class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
-                <svg id="icon-unlock" class="w-10 h-10 absolute opacity-0 transition-opacity duration-300 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg id="icon-unlock" class="w-10 h-10 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                 </svg>
             </div>
@@ -664,9 +664,11 @@
             overlay.style.display = 'flex';
             overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
             
-            iconLock.style.opacity = '1';
-            iconUnlock.style.opacity = '0';
-            iconContainer.classList.remove('scale-110');
+            iconLock.classList.remove('hidden');
+            iconUnlock.classList.add('hidden');
+            
+            iconContainer.classList.remove('scale-110', 'text-green-500');
+            iconContainer.classList.add('text-blue-600');
             waitingTitle.classList.remove('text-green-600');
             
             waitingTitle.textContent = "กำลังบันทึกคะแนน...";
@@ -740,10 +742,13 @@
                 const isRoundChanged = currentRoundText !== newRoundText;
 
                 // 1. เปลี่ยนเป็นแม่กุญแจสีเขียวปลดล็อก
-                iconLock.style.opacity = '0';
-                iconUnlock.style.opacity = '1';
-                iconContainer.classList.add('scale-110');
+                iconLock.classList.add('hidden');
+                iconUnlock.classList.remove('hidden');
+                
+                iconContainer.classList.remove('text-blue-600');
+                iconContainer.classList.add('scale-110', 'text-green-500');
                 waitingTitle.classList.add('text-green-600');
+                
                 waitingTitle.textContent = "ปลดล็อกแล้ว";
                 waitingText.textContent = "เชิญเริ่มการให้คะแนนได้";
                 
@@ -789,10 +794,13 @@
                         overlay.classList.add('hidden');
 
                         // รีเซ็ตสถานะหน้าต่างล็อกคืนค่าเดิมเตรียมใช้รอบถัดไป
-                        iconLock.style.opacity = '1';
-                        iconUnlock.style.opacity = '0';
-                        iconContainer.classList.remove('scale-110');
+                        iconLock.classList.remove('hidden');
+                        iconUnlock.classList.add('hidden');
+                        
+                        iconContainer.classList.remove('scale-110', 'text-green-500');
+                        iconContainer.classList.add('text-blue-600');
                         waitingTitle.classList.remove('text-green-600');
+                        
                         waitingTitle.textContent = "กรุณารอสักครู่";
                         waitingText.textContent = "รอผู้ควบคุมเปิดระบบรับคะแนน...";
                     }, 400);
@@ -803,9 +811,11 @@
                 overlay.style.display = 'flex';
                 overlay.classList.remove('opacity-0', 'pointer-events-none', 'hidden');
                 
-                iconLock.style.opacity = '1';
-                iconUnlock.style.opacity = '0';
-                iconContainer.classList.remove('scale-110');
+                iconLock.classList.remove('hidden');
+                iconUnlock.classList.add('hidden');
+                
+                iconContainer.classList.remove('scale-110', 'text-green-500');
+                iconContainer.classList.add('text-blue-600');
                 waitingTitle.classList.remove('text-green-600');
                 
                 waitingTitle.textContent = "ล็อกหน้าจอแล้ว";
