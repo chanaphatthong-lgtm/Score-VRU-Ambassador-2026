@@ -12,7 +12,7 @@
             darkMode: 'class'
         }
     </script>
-    <!-- ใช้ฟอนต์ Kanit และ Inter -->
+    <!-- ฟอนต์ Kanit และ Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
@@ -24,6 +24,7 @@
 
         html, body, input, select, button {
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
+            box-sizing: border-box;
         }
 
         /* 🔒 ล็อกสีพื้นหลังไม่ให้เกิดแถบสีขาวตอน Pull-to-Refresh บน iOS / iPadOS */
@@ -44,7 +45,7 @@
             min-height: 100vh;
             min-height: -webkit-fill-available;
             transition: background 0.4s ease, color 0.4s ease;
-            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
         }
 
         ::-webkit-scrollbar { display: none; }
@@ -54,44 +55,56 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 🌫️ เลเยอร์เบลอขอบบนแบบ Fade Gradient */
+        /* 📱 Fix iOS Input Date Styling Reset */
+        input[type="date"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-height: 42px;
+        }
+        input[type="date"]::-webkit-date-and-time-value {
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* 🌫️ เลเยอร์เบลอขอบบนแบบ Fade Gradient (z-index: 30) */
         .blur-overlay-top {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 170px;
+            height: calc(140px + env(safe-area-inset-top));
             pointer-events: none;
             z-index: 30;
-            backdrop-filter: blur(32px) saturate(190%);
-            -webkit-backdrop-filter: blur(32px) saturate(190%);
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
         }
 
-        /* 🌫️ เลเยอร์เบลอขอบล่างแบบ Fade Gradient */
+        /* 🌫️ เลเยอร์เบลอขอบล่างแบบ Fade Gradient (z-index: 30) */
         .blur-overlay-bottom {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 140px;
+            height: calc(130px + env(safe-area-inset-bottom));
             pointer-events: none;
             z-index: 30;
-            backdrop-filter: blur(32px) saturate(190%);
-            -webkit-backdrop-filter: blur(32px) saturate(190%);
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
         }
 
         /* 🪞 Liquid Glass Styling */
         .header-glass {
-            background: rgba(255, 255, 255, 0.76);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
             border: 1px solid rgba(255, 255, 255, 0.95);
             border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+            box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
         }
 
         .glass-card {
@@ -127,11 +140,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 6px;
+            padding: 9px 4px;
             border-radius: 14px;
             background: rgba(241, 245, 249, 0.9);
             border: 1.5px solid rgba(203, 213, 225, 0.9);
-            font-size: 14px;
+            font-size: clamp(12px, 3.2vw, 15px);
             font-weight: 800;
             color: #1e293b;
             cursor: pointer;
@@ -151,11 +164,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 2px;
-            border-radius: 14px;
+            padding: 10px 1px;
+            border-radius: 12px;
             border: 1.5px solid rgba(203, 213, 225, 0.9);
             background: #ffffff;
-            font-size: 13px;
+            font-size: clamp(12px, 3.4vw, 15px);
             font-weight: 800;
             color: #1e293b;
             cursor: pointer;
@@ -165,11 +178,11 @@
 
         @media (min-width: 640px) {
             .status-radio label {
-                font-size: 15px;
-                padding: 11px 4px;
+                padding: 12px 6px;
+                border-radius: 14px;
             }
             .session-btn label {
-                font-size: 15px;
+                padding: 10px 8px;
             }
         }
 
@@ -206,9 +219,9 @@
             color: #f1f5f9 !important;
         }
         body.dark .header-glass {
-            background: rgba(15, 23, 42, 0.75) !important;
-            backdrop-filter: blur(40px) saturate(200%) !important;
-            -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+            background: rgba(15, 23, 42, 0.88) !important;
+            backdrop-filter: blur(30px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
         }
@@ -247,59 +260,57 @@
         }
     </style>
 </head>
-<body class="pb-12">
+<body class="pb-44">
 
-    <!-- เลเยอร์เบลอขอบบนและล่าง (z-index: 30) -->
+    <!-- 🌫️ เลเยอร์เบลอขอบบนและล่าง (z-index: 30) -->
     <div class="blur-overlay-top"></div>
     <div class="blur-overlay-bottom"></div>
 
-    <div class="max-w-2xl mx-auto space-y-5">
+    <!-- Container ยืดขยาย responsive -->
+    <div class="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto space-y-4 sm:space-y-5">
         
-        <!-- HEADER BOX (z-50) -->
-        <div class="header-glass p-4 sm:p-5 sticky top-4 z-50">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3 sm:gap-4">
-                    <!-- โลโก้ logo.png (แสดงผลแบบโปร่งใส ไม่มีพื้นหลัง/ไม่มีกรอบ) -->
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
+        <!-- 📌 HEADER BOX (z-50 อยู่ชั้นบนสุด เหนือเอฟเฟกต์เบลอ) -->
+        <div class="header-glass p-3.5 sm:p-5 sticky top-2 sm:top-4 z-50">
+            <div class="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+                <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                    <!-- โลโก้ logo.png โปร่งใส -->
+                    <div class="w-12 h-12 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
                         <img src="logo.png" alt="VRU Ambassador Logo" class="w-full h-full object-contain">
                     </div>
-                    <div>
-                        <h1 class="text-lg sm:text-2xl txt-title leading-tight">ระบบเช็คชื่อรอบเก็บตัว</h1>
-                        <p class="text-xs sm:text-sm txt-subtitle mt-0.5">VRU Ambassador 2026</p>
+                    <div class="min-w-0">
+                        <h1 class="text-base sm:text-2xl txt-title leading-tight truncate">ระบบเช็คชื่อรอบเก็บตัว</h1>
+                        <p class="text-[11px] sm:text-sm txt-subtitle mt-0.5 truncate">VRU Ambassador 2026</p>
                     </div>
                 </div>
 
-                <!-- 🎛️ ปุ่มสไลด์โหมดสว่าง/โหมดมืด (Slider Toggle Button) -->
-                <button id="theme-toggle-btn" type="button" aria-label="Toggle Theme" class="relative w-16 h-8 rounded-full p-1 bg-slate-300/80 dark:bg-slate-700/80 border border-slate-400/50 dark:border-slate-600/50 flex items-center justify-between transition-colors shadow-inner shrink-0 cursor-pointer">
-                    <!-- สัญลักษณ์ดวงอาทิตย์ (ซ้าย / โหมดสว่าง) -->
-                    <span class="w-6 h-6 flex items-center justify-center z-10 text-white transition-opacity duration-300">
-                        <svg class="w-4 h-4 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <!-- 🎛️ ปุ่มสไลด์โหมดสว่าง/โหมดมืด -->
+                <button id="theme-toggle-btn" type="button" aria-label="Toggle Theme" class="relative w-14 h-7 sm:w-16 sm:h-8 rounded-full p-1 bg-slate-300/80 dark:bg-slate-700/80 border border-slate-400/50 dark:border-slate-600/50 flex items-center justify-between transition-colors shadow-inner shrink-0 cursor-pointer">
+                    <span class="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center z-10 text-white">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="4"></circle>
                             <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
                         </svg>
                     </span>
 
-                    <!-- สัญลักษณ์ดวงจันทร์ (ขวา / โหมดมืด) -->
-                    <span class="w-6 h-6 flex items-center justify-center z-10 text-white transition-opacity duration-300">
-                        <svg class="w-4 h-4 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24">
+                    <span class="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center z-10 text-white">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
                     </span>
 
-                    <!-- ปุ่มวงกลมสไลด์ (Knob) -->
-                    <div class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out transform translate-x-0 dark:translate-x-8"></div>
+                    <div class="absolute top-1 left-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out transform translate-x-0 dark:translate-x-7 sm:dark:translate-x-8"></div>
                 </button>
             </div>
 
             <!-- เลือกวันที่และช่วงเวลา -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                 <div class="space-y-1">
-                    <label for="checkDate" class="block text-xs txt-label uppercase tracking-wide">เลือกวันที่:</label>
-                    <input type="date" id="checkDate" required class="w-full p-2.5 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-inner">
+                    <label for="checkDate" class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">เลือกวันที่:</label>
+                    <input type="date" id="checkDate" required class="w-full px-3 py-2 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-inner text-center">
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block text-xs txt-label uppercase tracking-wide">ช่วงเวลา:</label>
+                    <label class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">ช่วงเวลา:</label>
                     <div class="grid grid-cols-2 gap-2 session-btn">
                         <div>
                             <input type="radio" id="session_morning" name="session" value="เช้า" checked>
@@ -315,22 +326,23 @@
         </div>
 
         <!-- FORM CONTAINER -->
-        <form id="checkInForm" class="space-y-4 sm:space-y-5">
-            <div id="contestantsContainer" class="space-y-3 sm:space-y-4"></div>
+        <form id="checkInForm" class="space-y-3.5 sm:space-y-5">
+            <!-- 📋 CONTESTANTS CONTAINER (z-10 อยู่ด้านล่างเลเยอร์เบลอ) -->
+            <div id="contestantsContainer" class="space-y-3 sm:space-y-4 relative z-10"></div>
 
-            <!-- SUBMIT BUTTON BOX (z-50) -->
-            <div class="header-glass p-4 sticky bottom-4 z-50">
-                <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-base sm:text-lg py-3.5 sm:py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
+            <!-- 📌 SUBMIT BUTTON BOX (z-50 ลอยอยู่ชั้นบนสุดอย่างเป็นเอกเทศ ไม่โดนเบลอทับ) -->
+            <div class="header-glass p-3.5 sm:p-4 sticky bottom-3 sm:bottom-4 z-50">
+                <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-base sm:text-lg py-3 sm:py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
                     บันทึกข้อมูล
                 </button>
-                <p id="statusMsg" class="text-center font-extrabold text-sm mt-3"></p>
+                <p id="statusMsg" class="text-center font-extrabold text-xs sm:text-sm mt-2 sm:mt-3"></p>
             </div>
         </form>
 
     </div>
 
     <script>
-        // Web App URL จาก Google Apps Script ล่าสุดของคุณ
+        // Web App URL จาก Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYKQRdul52f-wtB4fZkX6Rvbe3cLJ1eDLOWY2V6SyZt2UK1aCaf1LLrR55NjdjgmTvKA/exec';
 
         // ตั้งค่าวันที่เริ่มต้นให้เป็นวันปัจจุบัน
@@ -396,13 +408,13 @@
                     groupStyle = "bg-pink-100/90 dark:bg-pink-950/70 text-pink-900 dark:text-pink-300 border-pink-300 dark:border-pink-800";
                 }
 
-                groupTitle.className = `text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl border mt-5 mb-2 shadow-sm ${groupStyle}`;
+                groupTitle.className = `text-[11px] sm:text-xs font-black uppercase tracking-wider px-3 py-1.5 sm:py-2 rounded-xl border mt-4 sm:mt-5 mb-2 shadow-sm ${groupStyle}`;
                 groupTitle.innerText = c.group;
                 container.appendChild(groupTitle);
                 currentGroup = c.group;
             }
 
-            // กำหนดสีชิปป้ายรหัสหมายเลข (VQ=สีม่วง, VM=สีน้ำเงิน, VW=สีชมพู)
+            // กำหนดสีชิปป้ายรหัสหมายเลข
             let badgeBg = "";
             if (c.id.startsWith("VQ")) {
                 badgeBg = "bg-purple-700 text-white shadow-purple-900/20";
@@ -413,17 +425,17 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'glass-card p-3.5 sm:p-4 space-y-3 sm:space-y-3.5';
+            card.className = 'glass-card p-3 sm:p-4 space-y-3 sm:space-y-3.5';
             card.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl ${badgeBg} font-black text-xs sm:text-base shadow-md tracking-wide shrink-0">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <span class="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl ${badgeBg} font-black text-xs sm:text-base shadow-md tracking-wide shrink-0">
                         ${c.id}
                     </span>
-                    <span class="contestant-name text-base sm:text-lg">
+                    <span class="contestant-name text-sm sm:text-lg truncate">
                         ${c.name}
                     </span>
                 </div>
-                <div class="grid grid-cols-4 gap-1.5 sm:gap-2 status-radio">
+                <div class="grid grid-cols-4 gap-1.5 sm:gap-2.5 status-radio">
                     <div>
                         <input type="radio" id="${c.id}_ma" name="${c.id}" value="มา" checked>
                         <label for="${c.id}_ma">มา</label>
@@ -487,13 +499,13 @@
                 .then(response => response.text())
                 .then(result => {
                     msg.innerText = '✅ บันทึกข้อมูลสำเร็จ! (วันที่ ' + formattedDate + ' รอบ ' + session + ')';
-                    msg.className = 'text-center font-black text-sm mt-3 text-emerald-700 dark:text-emerald-400';
+                    msg.className = 'text-center font-black text-xs sm:text-sm mt-2 sm:mt-3 text-emerald-700 dark:text-emerald-400';
                     btn.disabled = false;
                     btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
                 })
                 .catch(error => {
                     msg.innerText = '❌ เกิดข้อผิดพลาด: ' + error.message;
-                    msg.className = 'text-center font-black text-sm mt-3 text-rose-700 dark:text-rose-400';
+                    msg.className = 'text-center font-black text-xs sm:text-sm mt-2 sm:mt-3 text-rose-700 dark:text-rose-400';
                     btn.disabled = false;
                     btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
                 });
