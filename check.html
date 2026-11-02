@@ -27,39 +27,79 @@
             unicode-range: U+0041-005A, U+0061-007A, U+0030-0039;
         }
 
-        html, body, input, select, button {
+        html, body, input, select, button, label {
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
             box-sizing: border-box;
+            /* ⚡ 120Hz Ultra Touch Optimization: ยกเลิก Tap Lag บน iOS / Android */
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
         }
 
-        /* 🔒 ล็อกสีพื้นหลัง HTML ป้องกันขอบขาวเมื่อเลื่อนหน้าจอ */
+        /* 🔒 ✨ 800ms Synchronized Theme Transitions */
+        .header-glass, .glass-card, .txt-title, .txt-subtitle, .txt-label, 
+        .contestant-name, .contestant-nickname, input[type="date"], 
+        #theme-toggle-btn, #theme-toggle-btn div {
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        color 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        text-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* 🔒 ล็อกสีพื้นหลัง HTML */
         html {
             background-color: #e0eaf5;
             min-height: 100%;
             overscroll-behavior-y: none;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         html.dark {
             background-color: #0d0e15 !important;
         }
 
         body {
-            background: radial-gradient(circle at 15% 50%, #cce0f5, #e0eaf5 25%, #f0f6fc 50%, #e0eaf5 75%, #cce0f5 100%);
-            background-attachment: fixed;
-            background-color: #e0eaf5;
             color: #0f172a;
             min-height: 100vh;
             min-height: -webkit-fill-available;
             margin: 0;
             padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-            transition: background 0.4s ease, color 0.4s ease;
+            transition: color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            /* ⚡ GPU Compositing สำหรับ 120Hz Smooth Scrolling */
+            -webkit-overflow-scrolling: touch;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         body.dark {
-            background: radial-gradient(circle at 15% 50%, #1a1b26, #0d0e15 25%, #050505 50%, #0d0e15 75%, #1a1b26 100%) !important;
-            background-attachment: fixed;
-            background-color: #0d0e15 !important;
             color: #f1f5f9 !important;
+        }
+
+        /* ⚡ GPU Hardware-Accelerated Background Layers */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            will-change: opacity;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            transform: translateZ(0);
+        }
+
+        .bg-layer-light {
+            background: radial-gradient(circle at 15% 50%, #cce0f5, #e0eaf5 25%, #f0f6fc 50%, #e0eaf5 75%, #cce0f5 100%);
+            opacity: 1;
+        }
+        body.dark .bg-layer-light {
+            opacity: 0;
+        }
+
+        .bg-layer-dark {
+            background: radial-gradient(circle at 15% 50%, #1a1b26, #0d0e15 25%, #050505 50%, #0d0e15 75%, #1a1b26 100%);
+            opacity: 0;
+        }
+        body.dark .bg-layer-dark {
+            opacity: 1;
         }
 
         ::-webkit-scrollbar { display: none; }
@@ -94,6 +134,7 @@
             -webkit-backdrop-filter: blur(28px) saturate(190%);
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
             mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            transform: translateZ(0);
         }
 
         /* 🌫️ เลเยอร์เบลอขอบล่างแบบ Fade Gradient */
@@ -109,6 +150,7 @@
             -webkit-backdrop-filter: blur(28px) saturate(190%);
             -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
             mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            transform: translateZ(0);
         }
 
         /* 🪞 Liquid Glass Styling */
@@ -119,6 +161,7 @@
             border: 1px solid rgba(255, 255, 255, 0.95);
             border-radius: 24px;
             box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+            transform: translateZ(0);
         }
 
         .glass-card {
@@ -128,10 +171,10 @@
             border: 1px solid rgba(203, 213, 225, 0.8);
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
-            transition: all 0.2s ease;
+            transform: translateZ(0);
         }
 
-        /* 💡 ⚡ GROUP NEON BADGES & HEADERS (เอฟเฟกต์นีออนสีเรืองแสง) */
+        /* 💡 ⚡ GROUP NEON BADGES & HEADERS */
         .neon-badge-vq {
             color: #ffffff !important;
             background: #7e22ce !important;
@@ -156,6 +199,49 @@
             text-shadow: 0 0 6px #ffffff, 0 0 12px rgba(251, 207, 232, 0.95);
         }
 
+        /* 🎨 สัญลักษณ์วงกลมสีประจำคณะ */
+        .fac-edu { background: #dc2626 !important; }
+        .fac-health { background: #fa8072 !important; }
+        .fac-innov { background: #8b4513 !important; }
+        .fac-sci { background: #eab308 !important; }
+        .fac-manage { background: #f97316 !important; }
+        .fac-hum { background: #9333ea !important; }
+
+        .connection-dot-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .connection-ping {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            opacity: 0.75;
+            animation: pulse-beacon 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+            will-change: transform, opacity;
+        }
+
+        .connection-core {
+            position: relative;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
+        }
+
+        @keyframes pulse-beacon {
+            0% { transform: scale(0.6); opacity: 0.9; }
+            50% { transform: scale(1.6); opacity: 0.15; }
+            100% { transform: scale(2.0); opacity: 0; }
+        }
+
         /* 🎨 Custom Soft Shadows & Glow for Text */
         .txt-title {
             color: #0f172a !important;
@@ -176,7 +262,6 @@
             font-weight: 800;
         }
 
-        /* 🌟 เงาชื่อจริงนุ่มนวล อ่านง่าย */
         .contestant-name {
             color: #0f172a !important;
             font-weight: 800;
@@ -187,12 +272,10 @@
             text-shadow: 0 0 12px rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.5) !important;
         }
 
-        /* 🌈 เงานีออนชื่อเล่นแยกตามกลุ่ม */
         .contestant-nickname {
             font-weight: 900;
         }
 
-        /* VQ (ม่วง) */
         .nickname-vq {
             color: #7e22ce !important;
             text-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
@@ -202,7 +285,6 @@
             text-shadow: 0 0 12px rgba(192, 132, 252, 0.65), 0 0 20px rgba(168, 85, 247, 0.3);
         }
 
-        /* VM (น้ำเงิน) */
         .nickname-vm {
             color: #1d4ed8 !important;
             text-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
@@ -212,7 +294,6 @@
             text-shadow: 0 0 12px rgba(96, 165, 250, 0.65), 0 0 20px rgba(59, 130, 246, 0.3);
         }
 
-        /* VW (ชมพู่) */
         .nickname-vw {
             color: #db2777 !important;
             text-shadow: 0 0 10px rgba(236, 72, 153, 0.35);
@@ -226,14 +307,15 @@
             background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
             border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 8px 25px rgba(30, 64, 175, 0.35);
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: transform 0.08s cubic-bezier(0, 0, 0.2, 1), filter 0.08s ease !important;
+            will-change: transform;
         }
         .glass-button:active:not(:disabled) {
-            transform: scale(0.97);
+            transform: scale(0.97) translateZ(0);
             filter: brightness(0.95);
         }
 
-        /* Segmented Button for Time Session */
+        /* ⚡ Ultra Fast Touch Feedback for Radio Buttons (ตอบสนองการกด 50ms) */
         .session-btn input[type="radio"] { display: none; }
         .session-btn label {
             display: flex;
@@ -248,7 +330,11 @@
             color: #1e293b;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.2s ease;
+            transition: background-color 0.08s ease, transform 0.06s ease, border-color 0.08s ease !important;
+            will-change: transform;
+        }
+        .session-btn label:active {
+            transform: scale(0.95);
         }
         .session-btn input:checked + label {
             background: #1e40af !important;
@@ -272,7 +358,11 @@
             color: #1e293b;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.15s ease;
+            transition: background-color 0.08s ease, transform 0.06s ease, border-color 0.08s ease !important;
+            will-change: transform;
+        }
+        .status-radio label:active {
+            transform: scale(0.93);
         }
 
         @media (min-width: 640px) {
@@ -333,7 +423,6 @@
             color: #f1f5f9 !important;
         }
 
-        /* ☀️🌤️ ปุ่ม เช้า/บ่าย ใน Dark Mode */
         body.dark .session-btn label {
             background: rgba(15, 23, 42, 0.7) !important;
             border-color: rgba(255, 255, 255, 0.15) !important;
@@ -355,6 +444,10 @@
 </head>
 <body>
 
+    <!-- ⚡ GPU Accelerated Background Fade Layers -->
+    <div class="bg-layer bg-layer-light"></div>
+    <div class="bg-layer bg-layer-dark"></div>
+
     <!-- 🌫️ เลเยอร์เบลอขอบบนและล่าง -->
     <div class="blur-overlay-top"></div>
     <div class="blur-overlay-bottom"></div>
@@ -362,11 +455,10 @@
     <!-- Container ปรับขยายขนาด responsive -->
     <div class="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto space-y-4 sm:space-y-5 relative">
         
-        <!-- 📌 HEADER BOX (z-50 ลอยอยู่บนสุด คมชัดตลอดเวลา) -->
+        <!-- 📌 HEADER BOX -->
         <div class="header-glass p-3.5 sm:p-5 sticky top-2 sm:top-4 z-50">
             <div class="flex items-center justify-between mb-3 sm:mb-4 gap-2">
                 <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
-                    <!-- โลโก้ logo.png โปร่งใส -->
                     <div class="w-12 h-12 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
                         <img src="logo.png" alt="VRU Ambassador Logo" class="w-full h-full object-contain">
                     </div>
@@ -391,7 +483,7 @@
                         </svg>
                     </span>
 
-                    <div class="absolute top-1 left-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out transform translate-x-0 dark:translate-x-7 sm:dark:translate-x-8"></div>
+                    <div class="absolute top-1 left-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white shadow-md transform translate-x-0 dark:translate-x-7 sm:dark:translate-x-8"></div>
                 </button>
             </div>
 
@@ -399,7 +491,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                 <div class="space-y-1">
                     <label for="checkDate" class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">เลือกวันที่:</label>
-                    <input type="date" id="checkDate" required class="w-full px-3 py-2 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-inner text-center">
+                    <input type="date" id="checkDate" required class="w-full px-3 py-2 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 shadow-inner text-center">
                 </div>
 
                 <div class="space-y-1">
@@ -465,26 +557,38 @@
         themeToggleBtn.addEventListener('click', () => enableDarkMode(!document.documentElement.classList.contains('dark')));
         if (localStorage.getItem('checkin_theme') === 'dark') enableDarkMode(true);
 
-        // ------------------ CONTESTANTS DATA (ชื่อกลุ่มเต็มตามการประกวด) ------------------
+        // Map คณะ -> คลาสสีสัญลักษณ์วงกลม
+        const facultyClasses = {
+            "ครุศาสตร์": "fac-edu",
+            "สาธารณสุขศาสตร์": "fac-health",
+            "นวัตกรรมการจัดการ": "fac-innov",
+            "วิทยาศาสตร์และเทคโนโลยี": "fac-sci",
+            "วิทยาการจัดการ": "fac-manage",
+            "มนุษยศาสตร์และสังคมศาสตร์": "fac-hum"
+        };
+
+        // ------------------ CONTESTANTS DATA ------------------
         const contestants = [
-            { id: "VQ01", name: "คุณจารุกร เย็นประสพ", nickname: "ยีน", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ02", name: "คุณธนพล กลิ่นหอม", nickname: "ธันย์", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ03", name: "คุณบูรพา จุฬา", nickname: "บลู", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ04", name: "คุณทินภัทร มะลิแย้ม", nickname: "เจมมี่", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ05", name: "คุณธัญญารัตน์ ปะโยม", nickname: "มด", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ06", name: "คุณเบญจรัตน์ กรองมะเริง", nickname: "เบลล์", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VQ07", name: "คุณนัฐวุฒิ ม่วงสุราช", nickname: "นัทนิสา", group: "LGBTQIA+ VRU Ambassador 2026" },
-            { id: "VM01", name: "นายธนพัต เพ็งผลา", nickname: "ออโต้", group: "Mister VRU Ambassador 2026" },
-            { id: "VM02", name: "นายศุภวิทย์ เชื่อมมะรัง", nickname: "เหนือ", group: "Mister VRU Ambassador 2026" },
-            { id: "VM03", name: "นายเกียรติศักดิ์ หกเจริญ", nickname: "บอส", group: "Mister VRU Ambassador 2026" },
-            { id: "VM04", name: "นายอนุรักษ์ ทองอินทร์", nickname: "บีมเมอร์", group: "Mister VRU Ambassador 2026" },
-            { id: "VM05", name: "นายอภิสันติธน ชีวางกูล", nickname: "ดีดี", group: "Mister VRU Ambassador 2026" },
-            { id: "VW01", name: "นางสาวกิ่งแก้ว ชิน", nickname: "ชมพู่", group: "Miss VRU Ambassador 2026" },
-            { id: "VW02", name: "นางสาวพิมพ์ภินันท์ บูรณ์เจริญ", nickname: "หงส์หยก", group: "Miss VRU Ambassador 2026" },
-            { id: "VW03", name: "นางสาวสุรางค์พิมล ฤทธิ์กัณโต", nickname: "ปะแป้ง", group: "Miss VRU Ambassador 2026" },
-            { id: "VW04", name: "นางสาววนัชพร ช่วยบุญ", nickname: "วิว", group: "Miss VRU Ambassador 2026" },
-            { id: "VW05", name: "นางสาวรัชนก งอยแพง", nickname: "เครป", group: "Miss VRU Ambassador 2026" },
-            { id: "VW06", name: "นางสาวธนัญญา สีทองธนะวัฒน์", nickname: "เบลล์", group: "Miss VRU Ambassador 2026" }
+            { id: "VQ01", name: "คุณจารุกร เย็นประสพ", nickname: "ยีน", faculty: "ครุศาสตร์", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ02", name: "คุณธนพล กลิ่นหอม", nickname: "ธันย์", faculty: "มนุษยศาสตร์และสังคมศาสตร์", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ03", name: "คุณบูรพา จุฬา", nickname: "บลู", faculty: "สาธารณสุขศาสตร์", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ04", name: "คุณทินภัทร มะลิแย้ม", nickname: "เจมมี่", faculty: "มนุษยศาสตร์และสังคมศาสตร์", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ05", name: "คุณธัญญารัตน์ ปะโยม", nickname: "มด", faculty: "วิทยาการจัดการ", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ06", name: "คุณเบญจรัตน์ กรองมะเริง", nickname: "เบลล์", faculty: "วิทยาการจัดการ", group: "LGBTQIA+ VRU Ambassador 2026" },
+            { id: "VQ07", name: "คุณนัฐวุฒิ ม่วงสุราช", nickname: "นัทนิสา", faculty: "ครุศาสตร์", group: "LGBTQIA+ VRU Ambassador 2026" },
+            
+            { id: "VM01", name: "นายธนพัต เพ็งผลา", nickname: "ออโต้", faculty: "สาธารณสุขศาสตร์", group: "Mister VRU Ambassador 2026" },
+            { id: "VM02", name: "นายศุภวิทย์ เชื่อมมะรัง", nickname: "เหนือ", faculty: "นวัตกรรมการจัดการ", group: "Mister VRU Ambassador 2026" },
+            { id: "VM03", name: "นายเกียรติศักดิ์ หกเจริญ", nickname: "บอส", faculty: "วิทยาศาสตร์และเทคโนโลยี", group: "Mister VRU Ambassador 2026" },
+            { id: "VM04", name: "นายอนุรักษ์ ทองอินทร์", nickname: "บีมเมอร์", faculty: "ครุศาสตร์", group: "Mister VRU Ambassador 2026" },
+            { id: "VM05", name: "นายอภิสันติธน ชีวางกูล", nickname: "ดีดี", faculty: "วิทยาการจัดการ", group: "Mister VRU Ambassador 2026" },
+            
+            { id: "VW01", name: "นางสาวกิ่งแก้ว ชิน", nickname: "ชมพู่", faculty: "วิทยาการจัดการ", group: "Miss VRU Ambassador 2026" },
+            { id: "VW02", name: "นางสาวพิมพ์ภินันท์ บูรณ์เจริญ", nickname: "หงส์หยก", faculty: "ครุศาสตร์", group: "Miss VRU Ambassador 2026" },
+            { id: "VW03", name: "นางสาวสุรางค์พิมล ฤทธิ์กัณโต", nickname: "ปะแป้ง", faculty: "มนุษยศาสตร์และสังคมศาสตร์", group: "Miss VRU Ambassador 2026" },
+            { id: "VW04", name: "นางสาววนัชพร ช่วยบุญ", nickname: "วิว", faculty: "สาธารณสุขศาสตร์", group: "Miss VRU Ambassador 2026" },
+            { id: "VW05", name: "นางสาวรัชนก งอยแพง", nickname: "เครป", faculty: "นวัตกรรมการจัดการ", group: "Miss VRU Ambassador 2026" },
+            { id: "VW06", name: "นางสาวธนัญญา สีทองธนะวัฒน์", nickname: "เบลล์", faculty: "วิทยาศาสตร์และเทคโนโลยี", group: "Miss VRU Ambassador 2026" }
         ];
 
         const container = document.getElementById('contestantsContainer');
@@ -492,7 +596,6 @@
 
         // Render Contestants Cards
         contestants.forEach((c) => {
-            // สร้างหัวข้อกลุ่มแยกสีแบบแถบใหญ่ นีออน จัดกึ่งกลาง
             if (c.group !== currentGroup) {
                 const groupTitle = document.createElement('div');
                 let groupStyle = "";
@@ -511,7 +614,6 @@
                 currentGroup = c.group;
             }
 
-            // คลาสป้ายหมายเลขนีออนสีเดิมของกลุ่ม และ คลาสเงานีออนชื่อเล่น
             let badgeClass = "";
             let nicknameClass = "";
             
@@ -526,19 +628,24 @@
                 nicknameClass = "nickname-vw";
             }
 
+            const facClass = facultyClasses[c.faculty] || 'bg-slate-600';
+
             const card = document.createElement('div');
             card.className = 'glass-card p-3 sm:p-4 space-y-3 sm:space-y-3.5';
             
-            // ป้ายหมายเลขใช้ badgeClass | ชื่อเล่นใช้ nicknameClass
             card.innerHTML = `
                 <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                         <span class="${badgeClass} px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-black text-xs sm:text-base tracking-wide shrink-0">
                             ${c.id}
                         </span>
                         <span class="contestant-name text-sm sm:text-lg truncate">
                             ${c.name}
                         </span>
+                        <div class="connection-dot-wrap" title="คณะ${c.faculty}">
+                            <span class="connection-ping ${facClass}"></span>
+                            <span class="connection-core ${facClass}"></span>
+                        </div>
                     </div>
                     <span class="contestant-nickname text-base sm:text-xl shrink-0 pl-2 ${nicknameClass}">
                         ${c.nickname}
