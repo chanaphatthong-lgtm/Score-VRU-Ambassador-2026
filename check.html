@@ -490,12 +490,12 @@
             <!-- เลือกวันที่และช่วงเวลา -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                 <div class="space-y-1">
-                    <label for="checkDate" class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">เลือกวันที่:</label>
+                    <label for="checkDate" class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">เลือกวันที่</label>
                     <input type="date" id="checkDate" required class="w-full px-3 py-2 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 shadow-inner text-center">
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">ช่วงเวลา:</label>
+                    <label class="block text-[11px] sm:text-xs txt-label uppercase tracking-wide">ช่วงเวลา</label>
                     <div class="grid grid-cols-2 gap-2 session-btn">
                         <div>
                             <input type="radio" id="session_morning" name="session" value="เช้า" checked>
@@ -518,7 +518,7 @@
             <!-- 📌 SUBMIT BUTTON BOX -->
             <div class="header-glass p-3.5 sm:p-4 sticky bottom-2 sm:bottom-4 z-50">
                 <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-base sm:text-lg py-3 sm:py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
-                    บันทึกข้อมูลเข้า Sheet
+                    บันทึกข้อมูล
                 </button>
                 <p id="statusMsg" class="text-center font-extrabold text-xs sm:text-sm mt-2 sm:mt-3"></p>
             </div>
@@ -717,13 +717,13 @@
                     msg.innerText = '✅ บันทึกข้อมูลสำเร็จ! (วันที่ ' + formattedDate + ' รอบ ' + session + ')';
                     msg.className = 'text-center font-black text-xs sm:text-sm mt-2 sm:mt-3 text-emerald-700 dark:text-emerald-400';
                     btn.disabled = false;
-                    btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
+                    btn.innerText = 'บันทึกข้อมูล';
                 })
                 .catch(error => {
                     msg.innerText = '❌ เกิดข้อผิดพลาด: ' + error.message;
                     msg.className = 'text-center font-black text-xs sm:text-sm mt-2 sm:mt-3 text-rose-700 dark:text-rose-400';
                     btn.disabled = false;
-                    btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
+                    btn.innerText = 'บันทึกข้อมูล';
                 });
         });
     </script>
