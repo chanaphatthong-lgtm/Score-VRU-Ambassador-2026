@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- 📱 Meta Tag สำหรับซิงก์สีขอบบน-ล่างของ Safari บน iPhone / iOS ให้เต็มจอ -->
     <meta name="theme-color" id="theme-color-meta" content="#e0eaf5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" id="status-bar-style" content="default">
+    
     <title>เช็คชื่อรอบเก็บตัว - VRU Ambassador 2026</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,7 +32,7 @@
             box-sizing: border-box;
         }
 
-        /* 🔒 ล็อกสีพื้นหลังไม่ให้เกิดแถบสีขาวตอน Pull-to-Refresh บน iOS / iPadOS */
+        /* 🔒 ล็อกสีพื้นหลัง HTML เพื่อป้องกันขอบขาวเมื่อ Pull-to-Refresh หรือเลื่อนขอบบน-ล่างบน iOS */
         html {
             background-color: #e0eaf5;
             min-height: 100%;
@@ -35,17 +40,26 @@
             transition: background-color 0.3s ease;
         }
         html.dark {
-            background-color: #0f172a !important;
+            background-color: #0d0e15 !important;
         }
 
         body {
             background: radial-gradient(circle at 15% 50%, #cce0f5, #e0eaf5 25%, #f0f6fc 50%, #e0eaf5 75%, #cce0f5 100%);
             background-attachment: fixed;
+            background-color: #e0eaf5;
             color: #0f172a;
             min-height: 100vh;
             min-height: -webkit-fill-available;
-            transition: background 0.4s ease, color 0.4s ease;
+            margin: 0;
             padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body.dark {
+            background: radial-gradient(circle at 15% 50%, #1a1b26, #0d0e15 25%, #050505 50%, #0d0e15 75%, #1a1b26 100%) !important;
+            background-attachment: fixed;
+            background-color: #0d0e15 !important;
+            color: #f1f5f9 !important;
         }
 
         ::-webkit-scrollbar { display: none; }
@@ -55,7 +69,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 📱 Fix iOS Input Date Styling Reset */
+        /* 📱 Fix iOS Input Date Styling */
         input[type="date"] {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -88,7 +102,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: calc(130px + env(safe-area-inset-bottom));
+            height: calc(140px + env(safe-area-inset-bottom));
             pointer-events: none;
             z-index: 30;
             backdrop-filter: blur(28px) saturate(190%);
@@ -213,11 +227,6 @@
         }
 
         /* 🌙 Dark Mode Support Overrides */
-        html.dark, body.dark {
-            background: radial-gradient(circle at 15% 50%, #1a1b26, #0d0e15 25%, #050505 50%, #0d0e15 75%, #1a1b26 100%) !important;
-            background-color: #0f172a !important;
-            color: #f1f5f9 !important;
-        }
         body.dark .header-glass {
             background: rgba(15, 23, 42, 0.88) !important;
             backdrop-filter: blur(30px) saturate(200%) !important;
@@ -260,16 +269,16 @@
         }
     </style>
 </head>
-<body class="pb-44">
+<body class="pb-40">
 
     <!-- 🌫️ เลเยอร์เบลอขอบบนและล่าง (z-index: 30) -->
     <div class="blur-overlay-top"></div>
     <div class="blur-overlay-bottom"></div>
 
-    <!-- Container ยืดขยาย responsive -->
-    <div class="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto space-y-4 sm:space-y-5">
+    <!-- Container ปรับขยายขนาด responsive (iPad Landscape/Portrait, iPhone) -->
+    <div class="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto space-y-4 sm:space-y-5 relative">
         
-        <!-- 📌 HEADER BOX (z-50 อยู่ชั้นบนสุด เหนือเอฟเฟกต์เบลอ) -->
+        <!-- 📌 HEADER BOX (z-50 ลอยอยู่บนสุด คมชัดตลอดเวลา) -->
         <div class="header-glass p-3.5 sm:p-5 sticky top-2 sm:top-4 z-50">
             <div class="flex items-center justify-between mb-3 sm:mb-4 gap-2">
                 <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
@@ -330,10 +339,10 @@
             <!-- 📋 CONTESTANTS CONTAINER (z-10 อยู่ด้านล่างเลเยอร์เบลอ) -->
             <div id="contestantsContainer" class="space-y-3 sm:space-y-4 relative z-10"></div>
 
-            <!-- 📌 SUBMIT BUTTON BOX (z-50 ลอยอยู่ชั้นบนสุดอย่างเป็นเอกเทศ ไม่โดนเบลอทับ) -->
+            <!-- 📌 SUBMIT BUTTON BOX (z-50 ลอยอยู่ชั้นบนสุด คมชัด 100% เหนือเลเยอร์เบลอ) -->
             <div class="header-glass p-3.5 sm:p-4 sticky bottom-3 sm:bottom-4 z-50">
                 <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-base sm:text-lg py-3 sm:py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
-                    บันทึกข้อมูล
+                    บันทึกข้อมูลเข้า Sheet
                 </button>
                 <p id="statusMsg" class="text-center font-extrabold text-xs sm:text-sm mt-2 sm:mt-3"></p>
             </div>
@@ -348,23 +357,27 @@
         // ตั้งค่าวันที่เริ่มต้นให้เป็นวันปัจจุบัน
         document.getElementById('checkDate').valueAsDate = new Date();
 
-        // ------------------ DARK MODE TOGGLE ------------------
+        // ------------------ DARK MODE TOGGLE (ซิงก์ Safari Theme Color บน iPhone) ------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const themeColorMeta = document.getElementById('theme-color-meta');
+        const statusBarStyle = document.getElementById('status-bar-style');
 
         function enableDarkMode(isDark) {
             if (isDark) {
                 document.documentElement.classList.add('dark');
                 document.body.classList.add('dark');
-                themeColorMeta.setAttribute('content', '#0f172a');
+                if (themeColorMeta) themeColorMeta.setAttribute('content', '#0d0e15');
+                if (statusBarStyle) statusBarStyle.setAttribute('content', 'black-translucent');
                 localStorage.setItem('checkin_theme', 'dark');
             } else {
                 document.documentElement.classList.remove('dark');
                 document.body.classList.remove('dark');
-                themeColorMeta.setAttribute('content', '#e0eaf5');
+                if (themeColorMeta) themeColorMeta.setAttribute('content', '#e0eaf5');
+                if (statusBarStyle) statusBarStyle.setAttribute('content', 'default');
                 localStorage.setItem('checkin_theme', 'light');
             }
         }
+
         themeToggleBtn.addEventListener('click', () => enableDarkMode(!document.documentElement.classList.contains('dark')));
         if (localStorage.getItem('checkin_theme') === 'dark') enableDarkMode(true);
 
