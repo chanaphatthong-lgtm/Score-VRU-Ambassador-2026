@@ -12,6 +12,7 @@
             darkMode: 'class'
         }
     </script>
+    <!-- ใช้ฟอนต์ Kanit และ Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Kanit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
@@ -25,9 +26,15 @@
             font-family: 'Inter-Latin', 'Kanit', sans-serif;
         }
 
+        /* 🔒 ล็อกสีพื้นหลังไม่ให้เกิดแถบสีขาวตอน Pull-to-Refresh บน iOS / iPadOS */
         html {
             background-color: #e0eaf5;
-            height: -webkit-fill-available;
+            min-height: 100%;
+            overscroll-behavior-y: none;
+            transition: background-color 0.3s ease;
+        }
+        html.dark {
+            background-color: #0f172a !important;
         }
 
         body {
@@ -47,11 +54,41 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 🪞 High-Legibility Liquid Glass Styling */
-        .liquid-glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
+        /* 🌫️ เลเยอร์เบลอขอบบนแบบ Fade Gradient */
+        .blur-overlay-top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 170px;
+            pointer-events: none;
+            z-index: 30;
+            backdrop-filter: blur(32px) saturate(190%);
+            -webkit-backdrop-filter: blur(32px) saturate(190%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+        }
+
+        /* 🌫️ เลเยอร์เบลอขอบล่างแบบ Fade Gradient */
+        .blur-overlay-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 140px;
+            pointer-events: none;
+            z-index: 30;
+            backdrop-filter: blur(32px) saturate(190%);
+            -webkit-backdrop-filter: blur(32px) saturate(190%);
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%);
+        }
+
+        /* 🪞 Liquid Glass Styling */
+        .header-glass {
+            background: rgba(255, 255, 255, 0.76);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
             border: 1px solid rgba(255, 255, 255, 0.95);
             border-radius: 24px;
             box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
@@ -90,19 +127,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: 10px 6px;
             border-radius: 14px;
             background: rgba(241, 245, 249, 0.9);
             border: 1.5px solid rgba(203, 213, 225, 0.9);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
             color: #1e293b;
             cursor: pointer;
+            white-space: nowrap;
             transition: all 0.2s ease;
         }
         .session-btn input:checked + label {
-            background: #1e40af;
-            border-color: #1e40af;
+            background: #1e40af !important;
+            border-color: #1e40af !important;
             color: #ffffff !important;
             box-shadow: 0 4px 14px rgba(30, 64, 175, 0.3);
         }
@@ -113,18 +151,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 11px 4px;
+            padding: 10px 2px;
             border-radius: 14px;
             border: 1.5px solid rgba(203, 213, 225, 0.9);
             background: #ffffff;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 800;
             color: #1e293b;
             cursor: pointer;
+            white-space: nowrap;
             transition: all 0.15s ease;
         }
 
-        /* High Contrast Checked States */
+        @media (min-width: 640px) {
+            .status-radio label {
+                font-size: 15px;
+                padding: 11px 4px;
+            }
+            .session-btn label {
+                font-size: 15px;
+            }
+        }
+
+        /* High Contrast Checked States for Status */
         .status-radio input[value="มา"]:checked + label {
             background: #16a34a !important;
             border-color: #16a34a !important;
@@ -153,15 +202,18 @@
         /* 🌙 Dark Mode Support Overrides */
         html.dark, body.dark {
             background: radial-gradient(circle at 15% 50%, #1a1b26, #0d0e15 25%, #050505 50%, #0d0e15 75%, #1a1b26 100%) !important;
+            background-color: #0f172a !important;
             color: #f1f5f9 !important;
         }
-        body.dark .liquid-glass {
-            background: rgba(25, 25, 30, 0.75) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+        body.dark .header-glass {
+            background: rgba(15, 23, 42, 0.75) !important;
+            backdrop-filter: blur(40px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6) !important;
         }
         body.dark .glass-card {
-            background: rgba(35, 35, 42, 0.85) !important;
+            background: rgba(30, 41, 59, 0.85) !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
         }
         body.dark .txt-title { color: #f8fafc !important; }
@@ -170,17 +222,26 @@
         body.dark .contestant-name { color: #ffffff !important; }
 
         body.dark input[type="date"] {
-            background: rgba(20, 20, 25, 0.9) !important;
+            background: rgba(15, 23, 42, 0.95) !important;
             border-color: rgba(255, 255, 255, 0.2) !important;
             color: #f1f5f9 !important;
         }
+
+        /* ☀️🌤️ ปุ่ม เช้า/บ่าย ใน Dark Mode */
         body.dark .session-btn label {
-            background: rgba(20, 20, 25, 0.7);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            color: #64748b !important;
         }
+        body.dark .session-btn input:checked + label {
+            background: #2563eb !important;
+            border-color: #60a5fa !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.5) !important;
+        }
+
         body.dark .status-radio label {
-            background: rgba(20, 20, 25, 0.6);
+            background: rgba(15, 23, 42, 0.7);
             border-color: rgba(255, 255, 255, 0.15);
             color: #cbd5e1;
         }
@@ -188,26 +249,45 @@
 </head>
 <body class="pb-12">
 
+    <!-- เลเยอร์เบลอขอบบนและล่าง (z-index: 30) -->
+    <div class="blur-overlay-top"></div>
+    <div class="blur-overlay-bottom"></div>
+
     <div class="max-w-2xl mx-auto space-y-5">
         
-        <!-- HEADER BOX -->
-        <div class="liquid-glass p-5 sticky top-4 z-50">
+        <!-- HEADER BOX (z-50) -->
+        <div class="header-glass p-4 sm:p-5 sticky top-4 z-50">
             <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                    <!-- โลโก้ logo.png พื้นหลังวงกลมขนาดใหญ่ -->
-                    <div class="w-20 h-20 rounded-full bg-white p-2 flex items-center justify-center shadow-md border-2 border-slate-200 dark:border-slate-700 shrink-0">
-                        <img src="logo.png" alt="VRU Ambassador Logo" class="w-full h-full object-contain rounded-full">
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <!-- โลโก้ logo.png (แสดงผลแบบโปร่งใส ไม่มีพื้นหลัง/ไม่มีกรอบ) -->
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0">
+                        <img src="logo.png" alt="VRU Ambassador Logo" class="w-full h-full object-contain">
                     </div>
                     <div>
-                        <h1 class="text-xl sm:text-2xl txt-title leading-tight">ระบบเช็คชื่อรอบเก็บตัว</h1>
+                        <h1 class="text-lg sm:text-2xl txt-title leading-tight">ระบบเช็คชื่อรอบเก็บตัว</h1>
                         <p class="text-xs sm:text-sm txt-subtitle mt-0.5">VRU Ambassador 2026</p>
                     </div>
                 </div>
 
-                <!-- Dark Mode Toggle Button -->
-                <button id="theme-toggle-btn" type="button" class="bg-white/90 dark:bg-black/50 hover:bg-white backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-300 dark:border-white/10 shadow-sm flex items-center justify-center transition-all">
-                    <span id="theme-icon-moon" class="text-base">🌙</span>
-                    <span id="theme-icon-sun" class="text-base hidden">☀️</span>
+                <!-- 🎛️ ปุ่มสไลด์โหมดสว่าง/โหมดมืด (Slider Toggle Button) -->
+                <button id="theme-toggle-btn" type="button" aria-label="Toggle Theme" class="relative w-16 h-8 rounded-full p-1 bg-slate-300/80 dark:bg-slate-700/80 border border-slate-400/50 dark:border-slate-600/50 flex items-center justify-between transition-colors shadow-inner shrink-0 cursor-pointer">
+                    <!-- สัญลักษณ์ดวงอาทิตย์ (ซ้าย / โหมดสว่าง) -->
+                    <span class="w-6 h-6 flex items-center justify-center z-10 text-white transition-opacity duration-300">
+                        <svg class="w-4 h-4 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
+                        </svg>
+                    </span>
+
+                    <!-- สัญลักษณ์ดวงจันทร์ (ขวา / โหมดมืด) -->
+                    <span class="w-6 h-6 flex items-center justify-center z-10 text-white transition-opacity duration-300">
+                        <svg class="w-4 h-4 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                    </span>
+
+                    <!-- ปุ่มวงกลมสไลด์ (Knob) -->
+                    <div class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out transform translate-x-0 dark:translate-x-8"></div>
                 </button>
             </div>
 
@@ -215,7 +295,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
                     <label for="checkDate" class="block text-xs txt-label uppercase tracking-wide">เลือกวันที่:</label>
-                    <input type="date" id="checkDate" required class="w-full p-3 rounded-2xl bg-white border border-slate-300 text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-inner">
+                    <input type="date" id="checkDate" required class="w-full p-2.5 sm:p-3 rounded-2xl bg-white border border-slate-300 text-xs sm:text-sm font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all shadow-inner">
                 </div>
 
                 <div class="space-y-1">
@@ -235,12 +315,12 @@
         </div>
 
         <!-- FORM CONTAINER -->
-        <form id="checkInForm" class="space-y-5">
-            <div id="contestantsContainer" class="space-y-4"></div>
+        <form id="checkInForm" class="space-y-4 sm:space-y-5">
+            <div id="contestantsContainer" class="space-y-3 sm:space-y-4"></div>
 
-            <!-- SUBMIT BUTTON -->
-            <div class="liquid-glass p-4 sticky bottom-4 z-40">
-                <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-lg py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
+            <!-- SUBMIT BUTTON BOX (z-50) -->
+            <div class="header-glass p-4 sticky bottom-4 z-50">
+                <button type="submit" id="submitBtn" class="glass-button w-full text-white font-black text-base sm:text-lg py-3.5 sm:py-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed">
                     บันทึกข้อมูล
                 </button>
                 <p id="statusMsg" class="text-center font-extrabold text-sm mt-3"></p>
@@ -258,28 +338,22 @@
 
         // ------------------ DARK MODE TOGGLE ------------------
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
-        const themeIconMoon = document.getElementById('theme-icon-moon');
-        const themeIconSun = document.getElementById('theme-icon-sun');
         const themeColorMeta = document.getElementById('theme-color-meta');
 
         function enableDarkMode(isDark) {
             if (isDark) {
                 document.documentElement.classList.add('dark');
                 document.body.classList.add('dark');
-                themeIconMoon.classList.add('hidden');
-                themeIconSun.classList.remove('hidden');
-                themeColorMeta.setAttribute('content', '#050505');
+                themeColorMeta.setAttribute('content', '#0f172a');
                 localStorage.setItem('checkin_theme', 'dark');
             } else {
                 document.documentElement.classList.remove('dark');
                 document.body.classList.remove('dark');
-                themeIconMoon.classList.remove('hidden');
-                themeIconSun.classList.add('hidden');
                 themeColorMeta.setAttribute('content', '#e0eaf5');
                 localStorage.setItem('checkin_theme', 'light');
             }
         }
-        themeToggleBtn.addEventListener('click', () => enableDarkMode(!document.body.classList.contains('dark')));
+        themeToggleBtn.addEventListener('click', () => enableDarkMode(!document.documentElement.classList.contains('dark')));
         if (localStorage.getItem('checkin_theme') === 'dark') enableDarkMode(true);
 
         // ------------------ CONTESTANTS DATA ------------------
@@ -339,18 +413,17 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'glass-card p-4 space-y-3.5';
+            card.className = 'glass-card p-3.5 sm:p-4 space-y-3 sm:space-y-3.5';
             card.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <!-- ป้ายรหัสหมายเลขขนาดใหญ่ ปรับสีตามประเภท VQ / VM / VW -->
-                    <span class="px-3.5 py-1.5 rounded-xl ${badgeBg} font-black text-sm sm:text-base shadow-md tracking-wide shrink-0">
+                    <span class="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl ${badgeBg} font-black text-xs sm:text-base shadow-md tracking-wide shrink-0">
                         ${c.id}
                     </span>
                     <span class="contestant-name text-base sm:text-lg">
                         ${c.name}
                     </span>
                 </div>
-                <div class="grid grid-cols-4 gap-2 status-radio">
+                <div class="grid grid-cols-4 gap-1.5 sm:gap-2 status-radio">
                     <div>
                         <input type="radio" id="${c.id}_ma" name="${c.id}" value="มา" checked>
                         <label for="${c.id}_ma">มา</label>
@@ -416,13 +489,13 @@
                     msg.innerText = '✅ บันทึกข้อมูลสำเร็จ! (วันที่ ' + formattedDate + ' รอบ ' + session + ')';
                     msg.className = 'text-center font-black text-sm mt-3 text-emerald-700 dark:text-emerald-400';
                     btn.disabled = false;
-                    btn.innerText = 'บันทึกข้อมูล';
+                    btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
                 })
                 .catch(error => {
                     msg.innerText = '❌ เกิดข้อผิดพลาด: ' + error.message;
                     msg.className = 'text-center font-black text-sm mt-3 text-rose-700 dark:text-rose-400';
                     btn.disabled = false;
-                    btn.innerText = 'บันทึกข้อมูล';
+                    btn.innerText = 'บันทึกข้อมูลเข้า Sheet';
                 });
         });
     </script>
