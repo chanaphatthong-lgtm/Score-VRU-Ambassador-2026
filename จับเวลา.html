@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRU AMBASSADOR 2026</title>
+    
+    <!-- ดึงฟอนต์ Tomorrow จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tomorrow:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Tomorrow', sans-serif;
+            
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- กรอบแสดงผลหลัก (เริ่มต้นสัดส่วนจอจริง 3456 x 896) --- */
+        .aspect-box {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            
+            max-width: calc(100vh * (3456 / 896));
+            max-height: calc(100vw * (896 / 3456));
+            aspect-ratio: 3456 / 896;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            transition: max-width 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        aspect-ratio 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: max-width, max-height, aspect-ratio;
+            transform: translateZ(0);
+        }
+
+        /* เมื่อกดปุ่ม P หรือ ย: ยืดขยายด้านบน-ล่าง เข้าสู่สัดส่วน 16:9 */
+        .aspect-box.mode-16-9 {
+            max-width: calc(100vh * (16 / 9));
+            max-height: calc(100vw * (9 / 16));
+            aspect-ratio: 16 / 9;
+        }
+
+        /* ผ้าใบรวมอิเลเมนต์ทั้งหมด ให้ยืดขยายไปพร้อมกัน */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backface-visibility: hidden;
+        }
+
+        /* วิดีโอพื้นหลังยืดเต็มสัดส่วน */
+        .video-background {
+            width: 100%;
+            height: 100%;
+            object-fit: fill; 
+            z-index: 1;
+            transform: translateZ(0);
+        }
+
+        /* --- กล่องคลุมหน้าปัดจับเวลาฝั่งซ้ายและขวา --- */
+        .timer-wrapper {
+            position: absolute;
+            top: 50%;
+            transform: translate3d(-50%, -50%, 0) scale(1);
+            z-index: 2;
+            
+            width: 7.5%;
+            height: 28.95%; 
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            transition: 
+                opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), 
+                filter 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 1;
+            filter: blur(0px);
+            will-change: transform, opacity, filter;
+            backface-visibility: hidden;
+        }
+
+        .timer-wrapper.fade-out-blur {
+            opacity: 0 !important;
+            filter: blur(3.5vw) !important;
+            transform: translate3d(-50%, -50%, 0) scale(0.65) !important;
+            pointer-events: none;
+        }
+
+        #timer-wrapper-left {
+            left: 8.3%;
+        }
+
+        #timer-wrapper-right {
+            left: 91.7%;
+        }
+
+        /* วงกลมเบลอฉากหลังนาฬิกา (สีใส + เบลอหนัก 55px ขอบละลายสมูท) */
+        .timer-bg-blur {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0);
+            width: 170%;
+            height: 170%;
+            border-radius: 50%;
+            
+            background: transparent;
+            backdrop-filter: blur(55px) saturate(220%);
+            -webkit-backdrop-filter: blur(55px) saturate(220%);
+            
+            -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 35%, rgba(0, 0, 0, 0) 70%);
+            mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 35%, rgba(0, 0, 0, 0) 70%);
+            
+            z-index: 1;
+            pointer-events: none;
+            will-change: backdrop-filter;
+        }
+
+        /* --- คลื่นหยุดเวลา 2 ขนาด (กลาง & ใหญ่) --- */
+        .freeze-wave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0) scale(0.7);
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            
+            border: 2.5px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.4);
+            
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+            will-change: transform, opacity;
+        }
+
+        .timer-wrapper.is-paused .wave-medium {
+            animation: freezeWaveMedium 0.85s cubic-bezier(0.1, 0.8, 0.25, 1) 0s forwards;
+        }
+
+        .timer-wrapper.is-paused .wave-large {
+            animation: freezeWaveLarge 1.05s cubic-bezier(0.1, 0.8, 0.25, 1) 0.12s forwards;
+        }
+
+        @keyframes freezeWaveMedium {
+            0% {
+                transform: translate3d(-50%, -50%, 0) scale(0.7);
+                opacity: 1;
+                border-width: 3px;
+            }
+            40% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translate3d(-50%, -50%, 0) scale(1.48);
+                opacity: 0;
+                border-width: 1px;
+            }
+        }
+
+        @keyframes freezeWaveLarge {
+            0% {
+                transform: translate3d(-50%, -50%, 0) scale(0.75);
+                opacity: 0.9;
+                border-width: 2.5px;
+            }
+            45% {
+                opacity: 0.75;
+            }
+            100% {
+                transform: translate3d(-50%, -50%, 0) scale(1.95);
+                opacity: 0;
+                border-width: 0.5px;
+            }
+        }
+
+        .progress-ring {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            filter: drop-shadow(0px 0.4vw 1vw rgba(0, 0, 0, 0.6));
+        }
+
+        .progress-pie__slice {
+            stroke: #ffffff;
+            stroke-width: 49;
+            fill: transparent;
+            transition: stroke-dashoffset 1s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            will-change: stroke-dashoffset;
+        }
+
+        .timer-display-scaler {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scaleY(1) translateZ(0);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        .aspect-box.mode-16-9 .timer-display-scaler {
+            transform: scaleY(calc((3456 / 896) / (16 / 9))) translateZ(0);
+        }
+
+        .timer-display {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.15vw;
+            font-size: 2.6vw;
+            font-weight: 700;
+            font-family: 'Tomorrow', sans-serif;
+            color: #ffffff;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .digit-box {
+            display: inline-block;
+            width: 1.8vw;
+            text-align: center;
+        }
+
+        /* --- กรอบกระจกฝ้า LIQUID GLASS KEYWORD RANDOMIZER --- */
+        .keyword-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate3d(-50%, -50%, 0) scale(1);
+            z-index: 4;
+            
+            width: 32%;
+            height: 28%;
+            border-radius: 2vw;
+            
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.08) 100%);
+            backdrop-filter: blur(28px) saturate(210%) contrast(115%);
+            -webkit-backdrop-filter: blur(28px) saturate(210%) contrast(115%);
+            
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                0 20px 45px -10px rgba(0, 0, 0, 0.65),
+                0 0 30px rgba(255, 255, 255, 0.18),
+                inset 0 2px 4px rgba(255, 255, 255, 0.8),
+                inset 0 -4px 12px rgba(0, 0, 0, 0.4);
+                
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            
+            transition: 
+                opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                backdrop-filter 0.5s ease;
+            will-change: transform, opacity, filter, backdrop-filter;
+            opacity: 1;
+            filter: blur(0px);
+            backface-visibility: hidden;
+        }
+
+        .keyword-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -60%;
+            width: 220%;
+            height: 220%;
+            background: linear-gradient(
+                45deg, 
+                transparent 42%, 
+                rgba(255, 255, 255, 0.25) 50%, 
+                transparent 58%
+            );
+            pointer-events: none;
+        }
+
+        .keyword-wrapper.shuffling {
+            transform: translate3d(-50%, -50%, 0) scale(0.955) !important;
+            backdrop-filter: blur(34px) saturate(240%) contrast(120%) !important;
+            -webkit-backdrop-filter: blur(34px) saturate(240%) contrast(120%) !important;
+            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), backdrop-filter 0.25s ease !important;
+        }
+
+        .keyword-wrapper.bounce-release {
+            animation: liquidiOS27Spring 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+        }
+
+        @keyframes liquidiOS27Spring {
+            0% {
+                transform: translate3d(-50%, -50%, 0) scale(0.955);
+            }
+            50% {
+                transform: translate3d(-50%, -50%, 0) scale(1.03);
+            }
+            75% {
+                transform: translate3d(-50%, -50%, 0) scale(0.995);
+            }
+            100% {
+                transform: translate3d(-50%, -50%, 0) scale(1);
+            }
+        }
+
+        .keyword-wrapper.fade-out-blur {
+            animation: keywordFluidExit 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            pointer-events: none;
+        }
+
+        @keyframes keywordFluidExit {
+            0% {
+                opacity: 1;
+                filter: blur(0px);
+                transform: translate3d(-50%, -50%, 0) scale(1);
+            }
+            30% {
+                opacity: 0.85;
+                filter: blur(1vw);
+                transform: translate3d(-50%, -50%, 0) scale(0.92);
+            }
+            100% {
+                opacity: 0;
+                filter: blur(4.5vw);
+                transform: translate3d(-50%, -50%, 0) scale(0.65);
+            }
+        }
+
+        .keyword-scaler {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scaleY(1) translateZ(0);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+
+        .aspect-box.mode-16-9 .keyword-scaler {
+            transform: scaleY(calc((3456 / 896) / (16 / 9))) translateZ(0);
+        }
+
+        .keyword-text {
+            font-size: 2.4vw;
+            font-weight: 700;
+            font-family: 'Tomorrow', sans-serif;
+            color: #ffffff;
+            text-shadow: 0 0.3vw 1vw rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.1vw;
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+            text-align: center;
+            will-change: transform;
+        }
+
+        @keyframes doubleBlinkLongPause {
+            0%   { opacity: 1; filter: blur(0px); }
+            5%   { opacity: 0.1; filter: blur(0.3vw); }
+            10%  { opacity: 1; filter: blur(0px); }     
+            15%  { opacity: 0.1; filter: blur(0.3vw); } 
+            20%  { opacity: 1; filter: blur(0px); }     
+            100% { opacity: 1; filter: blur(0px); }     
+        }
+
+        .blink-active {
+            animation: doubleBlinkLongPause 2s ease-in-out infinite !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- กล่องสัดส่วนหลัก -->
+    <div class="aspect-box" id="main-aspect-box">
+        <div class="canvas-container">
+            <!-- วิดีโอพื้นหลัง 3456x896 -->
+            <video class="video-background" id="bg-video" autoplay loop muted playsinline>
+                <source src="video.mp4" type="video/mp4">
+            </video>
+            
+            <!-- ตัวนับเวลาฝั่งซ้าย -->
+            <div id="timer-wrapper-left" class="timer-wrapper fade-out-blur">
+                <div class="timer-bg-blur"></div>
+                <div class="freeze-wave wave-medium"></div>
+                <div class="freeze-wave wave-large"></div>
+                <svg class="progress-ring" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <g class="ticks-group"></g>
+                    <circle class="progress-pie__slice" cx="50" cy="50" r="24.5"></circle>
+                </svg>
+                <div class="timer-display-scaler">
+                    <div class="timer-display">
+                        <span class="digit-box tens" style="display: none;"></span>
+                        <span class="digit-box units">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตัวสุ่มคีย์เวิร์ด Liquid Glass -->
+            <div id="keyword-wrapper" class="keyword-wrapper fade-out-blur">
+                <div class="keyword-scaler">
+                    <div id="keyword-text" class="keyword-text">PRESS SPACE</div>
+                </div>
+            </div>
+
+            <!-- ตัวนับเวลาฝั่งขวา -->
+            <div id="timer-wrapper-right" class="timer-wrapper fade-out-blur">
+                <div class="timer-bg-blur"></div>
+                <div class="freeze-wave wave-medium"></div>
+                <div class="freeze-wave wave-large"></div>
+                <svg class="progress-ring" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <g class="ticks-group"></g>
+                    <circle class="progress-pie__slice" cx="50" cy="50" r="24.5"></circle>
+                </svg>
+                <div class="timer-display-scaler">
+                    <div class="timer-display">
+                        <span class="digit-box tens" style="display: none;"></span>
+                        <span class="digit-box units">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const initialKeywords = [
+            "INNOVATION", "CREATIVITY", "PASSION", "FREEDOM", "ENERGY", 
+            "SYNERGY", "FUTURE", "MAGIC", "VICTORY", "CHALLENGE", 
+            "ACTION", "DISCOVERY", "STRATEGY", "HARMONY", "DESTINY", 
+            "POWER", "WISDOM", "BRAVERY", "ADVENTURE", "EXPLORE", 
+            "LEADERSHIP", "INSPIRATION", "TEAMWORK", "EMPOWER", "UNSTOPPABLE", 
+            "EVOLUTION", "PERSISTENCE", "BRILLIANCE", "CHAMPION", "IMPACT", 
+            "MOTIVATION", "DREAMS", "BELIEVE", "COURAGE", "FOCUS", 
+            "STRENGTH", "AMBITION", "TRIUMPH", "HORIZON", "DYNAMIC", 
+            "UNIVERSE", "MIRACLE", "LEGEND", "CLARITY", "UNITY", 
+            "SPARK", "MOMENTUM", "ELEVATE", "INSIGHT", "GLORY"
+        ];
+
+        let availableKeywords = [...initialKeywords];
+        let currentKeyword = "";
+
+        let timerInterval = null;
+        let blinkTimeout = null; 
+        let totalTime = 0;
+        let elapsedTime = 0;
+        let isTimerRunning = false;
+        let isTimerPaused = false;
+
+        let isShuffling = false;
+        let shuffleAnimationId = null;
+        let frameCounter = 0;
+        
+        const aspectBox = document.getElementById('main-aspect-box');
+        const wrappers = document.querySelectorAll('.timer-wrapper');
+        const displays = document.querySelectorAll('.timer-display');
+        const bgVideo = document.getElementById('bg-video');
+        const pieSlices = document.querySelectorAll('.progress-pie__slice');
+        
+        const keywordWrapper = document.getElementById('keyword-wrapper');
+        const keywordText = document.getElementById('keyword-text');
+
+        function renderRadialTicks() {
+            const ticksGroups = document.querySelectorAll('.ticks-group');
+            const totalTicks = 40; 
+            
+            ticksGroups.forEach(group => {
+                group.innerHTML = '';
+                for (let i = 0; i < totalTicks; i++) {
+                    const angle = i * (360 / totalTicks);
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    const isMajor = i % 5 === 0; 
+                    
+                    line.setAttribute("x1", "50");
+                    line.setAttribute("y1", isMajor ? "1.5" : "2.8");
+                    line.setAttribute("x2", "50");
+                    line.setAttribute("y2", isMajor ? "7.5" : "6.0");
+                    line.setAttribute("stroke", isMajor ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 0.55)");
+                    line.setAttribute("stroke-width", isMajor ? "1.4" : "0.9");
+                    line.setAttribute("stroke-linecap", "round");
+                    line.setAttribute("transform", `rotate(${angle} 50 50)`);
+                    
+                    group.appendChild(line);
+                }
+            });
+        }
+        renderRadialTicks();
+
+        const pieRadius = pieSlices[0].r.baseVal.value; 
+        const pieCircumference = pieRadius * 2 * Math.PI;
+
+        pieSlices.forEach(pie => {
+            pie.style.strokeDasharray = `${pieCircumference} ${pieCircumference}`;
+            pie.style.strokeDashoffset = pieCircumference;
+        });
+
+        bgVideo.addEventListener('error', function() {
+            alert("⚠️ วิดีโอไม่โหลดเกิดจาก: เบราว์เซอร์หาไฟล์ 'video.mp4' ไม่พบ หรือ ไฟล์นามสกุล/Codec ไม่รองรับ");
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let playPromise = bgVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => console.log("บราวเซอร์รอการกดปุ่มเพื่อเริ่มวิดีโอ"));
+            }
+        });
+
+        function setProgress(percentFilled) {
+            const offset = pieCircumference - (percentFilled / 100) * pieCircumference;
+            pieSlices.forEach(pie => {
+                pie.style.strokeDashoffset = offset;
+            });
+        }
+
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            clearTimeout(blinkTimeout); 
+            
+            if (bgVideo.paused) bgVideo.play().catch(e => {});
+
+            isTimerRunning = true;
+            isTimerPaused = false;
+            totalTime = seconds;
+            elapsedTime = 0;
+
+            wrappers.forEach(w => {
+                w.classList.remove('fade-out-blur', 'is-paused');
+                w.style.opacity = '1';
+            });
+            displays.forEach(d => {
+                d.classList.remove('blink-active');
+            });
+            
+            pieSlices.forEach(pie => pie.style.transition = 'none');
+            setProgress(0);
+            
+            pieSlices[0].getBoundingClientRect(); 
+            pieSlices.forEach(pie => pie.style.transition = 'stroke-dashoffset 1s linear');
+
+            updateDisplay(elapsedTime); 
+            timerInterval = setInterval(tickTimer, 1000);
+        }
+
+        function tickTimer() {
+            if (isTimerPaused) return;
+
+            elapsedTime++;
+            const percentFilled = (elapsedTime / totalTime) * 100;
+            
+            if (elapsedTime >= totalTime) {
+                clearInterval(timerInterval);
+                elapsedTime = totalTime;
+                isTimerRunning = false;
+                setProgress(100); 
+                updateDisplay(elapsedTime); 
+                
+                blinkTimeout = setTimeout(() => {
+                    displays.forEach(d => d.classList.add('blink-active'));
+                }, 2000); 
+                
+                return;
+            }
+            
+            setProgress(percentFilled);
+            updateDisplay(elapsedTime);
+        }
+
+        /* ฟังก์ชันการหยุดเวลา: ล็อกตำแหน่งแผ่นพายตรงมิลลิวินาทีปัจจุบัน ไม่เด้งข้ามไปที่ขีดถัดไป */
+        function togglePauseTimer() {
+            if (!isTimerRunning) return;
+
+            if (!isTimerPaused) {
+                isTimerPaused = true;
+                clearInterval(timerInterval);
+
+                // ดึงค่าการเติมแผ่นพาย ณ มิลลิวินาทีปัจจุบันจาก Computed Style แล้วล็อกค้างไว้ที่เดิมทันที
+                pieSlices.forEach(pie => {
+                    const currentOffset = window.getComputedStyle(pie).strokeDashoffset;
+                    pie.style.transition = 'none';
+                    pie.style.strokeDashoffset = currentOffset;
+                });
+
+                wrappers.forEach(w => {
+                    w.classList.remove('is-paused');
+                    void w.offsetWidth; 
+                    w.classList.add('is-paused');
+                });
+            } else {
+                isTimerPaused = false;
+
+                wrappers.forEach(w => {
+                    w.classList.remove('is-paused');
+                });
+
+                // คืนค่า Transition เดินเวลาต่อจากจุดที่ค้างอยู่
+                pieSlices.forEach(pie => pie.style.transition = 'stroke-dashoffset 1s linear');
+                timerInterval = setInterval(tickTimer, 1000);
+            }
+        }
+
+        function updateDisplay(totalSeconds) {
+            wrappers.forEach(wrapper => {
+                const tensEl = wrapper.querySelector('.tens');
+                const unitsEl = wrapper.querySelector('.units');
+                
+                if (totalSeconds < 10) {
+                    tensEl.style.display = 'none';
+                    unitsEl.textContent = totalSeconds;
+                } else {
+                    tensEl.style.display = 'inline-block';
+                    const str = String(totalSeconds);
+                    tensEl.textContent = str[0];
+                    unitsEl.textContent = str[1];
+                }
+            });
+        }
+
+        function shuffleLoop() {
+            if (!isShuffling) return;
+
+            frameCounter++;
+            if (frameCounter % 3 === 0) {
+                const randomIndex = Math.floor(Math.random() * availableKeywords.length);
+                keywordText.textContent = availableKeywords[randomIndex];
+            }
+
+            shuffleAnimationId = requestAnimationFrame(shuffleLoop);
+        }
+
+        function toggleKeywordShuffle() {
+            if (availableKeywords.length === 0) {
+                keywordText.textContent = "OUT OF WORDS";
+                keywordWrapper.classList.remove('fade-out-blur', 'shuffling', 'bounce-release');
+                return;
+            }
+
+            keywordWrapper.classList.remove('fade-out-blur');
+            
+            if (!isShuffling) {
+                isShuffling = true;
+                frameCounter = 0;
+                keywordWrapper.classList.remove('bounce-release');
+                keywordWrapper.classList.add('shuffling');
+
+                shuffleAnimationId = requestAnimationFrame(shuffleLoop);
+            } else {
+                isShuffling = false;
+                if (shuffleAnimationId) {
+                    cancelAnimationFrame(shuffleAnimationId);
+                    shuffleAnimationId = null;
+                }
+
+                const finalIndex = Math.floor(Math.random() * availableKeywords.length);
+                currentKeyword = availableKeywords[finalIndex];
+                keywordText.textContent = currentKeyword;
+                
+                keywordWrapper.classList.remove('shuffling');
+                void keywordWrapper.offsetWidth; 
+                keywordWrapper.classList.add('bounce-release');
+            }
+        }
+
+        function toggleFullscreen() {
+            const isFS = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            if (!isFS) {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (bgVideo.paused) bgVideo.play().catch(e => {});
+
+            if (event.key === '1') {
+                startTimer(30);
+            } 
+            else if (event.key === '2') {
+                startTimer(60);
+            } 
+            else if (event.key === '+' || event.code === 'NumpadAdd' || (event.code === 'Equal' && event.shiftKey)) {
+                togglePauseTimer();
+            }
+            else if (event.key === '-' || event.code === 'NumpadSubtract' || event.code === 'Minus') {
+                clearInterval(timerInterval);
+                clearTimeout(blinkTimeout); 
+                isTimerRunning = false;
+                isTimerPaused = false;
+                displays.forEach(d => d.classList.remove('blink-active'));
+                wrappers.forEach(w => w.classList.remove('is-paused'));
+                wrappers.forEach(w => w.classList.add('fade-out-blur'));
+            }
+            else if (event.key === 'Backspace') {
+                clearInterval(timerInterval);
+                clearTimeout(blinkTimeout); 
+                isTimerRunning = false;
+                isTimerPaused = false;
+                
+                if (isShuffling) {
+                    isShuffling = false;
+                    if (shuffleAnimationId) cancelAnimationFrame(shuffleAnimationId);
+                }
+
+                if (currentKeyword && currentKeyword !== "PRESS SPACE" && currentKeyword !== "OUT OF WORDS") {
+                    const idx = availableKeywords.indexOf(currentKeyword);
+                    if (idx !== -1) {
+                        availableKeywords.splice(idx, 1);
+                    }
+                    currentKeyword = "";
+                }
+                
+                displays.forEach(d => d.classList.remove('blink-active'));
+                wrappers.forEach(w => w.classList.remove('is-paused'));
+                wrappers.forEach(w => w.classList.add('fade-out-blur'));
+                keywordWrapper.classList.remove('shuffling', 'bounce-release');
+                keywordWrapper.classList.add('fade-out-blur');
+            }
+            else if (event.key.toLowerCase() === 'r' || event.key === 'พ') {
+                clearInterval(timerInterval);
+                clearTimeout(blinkTimeout); 
+                isTimerRunning = false;
+                isTimerPaused = false;
+                
+                if (isShuffling) {
+                    isShuffling = false;
+                    if (shuffleAnimationId) cancelAnimationFrame(shuffleAnimationId);
+                }
+
+                availableKeywords = [...initialKeywords];
+                currentKeyword = "";
+                keywordText.textContent = "PRESS SPACE";
+                
+                displays.forEach(d => d.classList.remove('blink-active'));
+                wrappers.forEach(w => w.classList.remove('is-paused'));
+                wrappers.forEach(w => w.classList.add('fade-out-blur'));
+                keywordWrapper.classList.remove('shuffling', 'bounce-release');
+                keywordWrapper.classList.add('fade-out-blur');
+            }
+            else if (event.code === 'Space' || event.key === ' ') {
+                event.preventDefault(); 
+                toggleKeywordShuffle();
+            }
+            else if (event.key === 'F11' || event.key.toLowerCase() === 'f') {
+                event.preventDefault(); 
+                toggleFullscreen();
+            }
+            else if (event.key.toLowerCase() === 'p' || event.key === 'ย') {
+                aspectBox.classList.toggle('mode-16-9');
+            }
+        });
+    </script>
+</body>
+</html>
